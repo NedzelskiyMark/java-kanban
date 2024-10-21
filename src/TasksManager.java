@@ -4,25 +4,11 @@ import java.util.ArrayList;
 public class TasksManager {
     private HashMap<Integer, Task> tasksList = new HashMap<>();
 
-    public void addTask(Task task) {
-        tasksList.put(task.getId(), task);
-    }
-
-    public HashMap<Integer, Task> getTasksList() {
-        return tasksList;
-    }
-
     public ArrayList<Task> getAllTasksList() {
         ArrayList<Task> allTasksList = new ArrayList<>();
 
-
         for (Task task : tasksList.values()) {
-            if (task.getClass().getName().equals("Epic")) {
-                ArrayList<SubTask> subTasks = ((Epic) task).getSubTasks();
-                allTasksList.addAll(subTasks);
-            } else {
-                allTasksList.add(task);
-            }
+            allTasksList.add(task);
         }
 
         return allTasksList;
@@ -32,11 +18,53 @@ public class TasksManager {
         tasksList.clear();
     }
 
-//    public Task getById (int id) {
-//
-//    }
-
-    public void createTask (String name, String description) {
-
+    public Task getById(int idToFind) {
+        for (Integer id : tasksList.keySet()) {
+            if (id.equals(idToFind)) {
+                return tasksList.get(id);
+            }
+            //if current task is Epic, we will search in it's SubTasks
+            Task taskCopy = tasksList.get(id);
+            if (taskCopy.getClass().getName().equals("Epic")) {
+                ArrayList<SubTask> tempList = ((Epic) taskCopy).getSubTasks();
+                for (SubTask subTaskFromEpic : tempList) {
+                    if (subTaskFromEpic.getId().equals(idToFind)) {
+                        return subTaskFromEpic;
+                    }
+                }
+            }
+        }
+        //must find better option
+        return null;
     }
+
+    public void createTask(Task newTask) {
+        tasksList.put(newTask.getId(), newTask);
+    }
+//наверное не понял сути обновления задачи
+    public void updateTask(int id, Task task) {
+        tasksList.put(id, task);
+        switch (task.getTaskStatus()) {
+            case NEW:
+                task.setTaskStatus(TaskStatus.IN_PROGRESS);
+                break;
+            case IN_PROGRESS:
+                task.setTaskStatus(TaskStatus.DONE);
+        }
+    }
+
+    public void deleteById(int id) {
+        tasksList.remove(id);
+    }
+
+    public ArrayList<SubTask> getAllSubtaskOfEpic(int id) {
+        Epic epicTask = (Epic) getById(id);
+        return epicTask.getSubTasks();
+    }
+
+
+
+
+
+
 }

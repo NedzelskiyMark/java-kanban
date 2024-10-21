@@ -20,6 +20,36 @@ public class Epic extends Task {
         this.subTasks = subTasks;
     }
 
+    public void checkEpicStatus() {
+        boolean isNewTasksInside = false;
+        boolean isInProgressTasksInside = false;
+        boolean isDoneTasksInside = false;
 
+        for (SubTask subTask: subTasks) {
+            switch (subTask.getTaskStatus()) {
+                case NEW:
+                    isNewTasksInside = true;
+                    break;
+                case IN_PROGRESS:
+                    isInProgressTasksInside = true;
+                case DONE:
+                    isDoneTasksInside = true;
+            }
+        }
+
+        if (isDoneTasksInside && !(isInProgressTasksInside || isNewTasksInside)) {
+            //only Done tasks inside
+            setTaskStatus(TaskStatus.DONE);
+
+        } else if (isNewTasksInside && !(isInProgressTasksInside || isDoneTasksInside)) {
+            //only NEW tasks inside
+            //nothing will change, status already is NEW
+        } else {
+            setTaskStatus(TaskStatus.IN_PROGRESS);
+        }
+        //выбрал именно такой порядок т.к. показалось что проще описать две этих ситуации, а в ином случае ставить
+        //статус IN_PROGRESS, чем описывать все варианты при которых Epic будет IN_PROGRESS
+
+    }
 }
 

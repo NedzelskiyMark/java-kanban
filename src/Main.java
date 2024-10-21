@@ -9,16 +9,15 @@ public class Main {
         sub.add(new SubTask("имя 1", "описание 1"));
         sub.add(new SubTask("имя 2", "описание 2"));
         sub.add(new SubTask("имя 3", "описание 3"));
-        Epic epic = new Epic("имя эпика", "описание эпика", sub);
+        tasksManager.createTask("имя эпика", "описание эпика", sub);
 
-        tasksManager.addTask(epic);
 
-        Task task = new Task("task name", "task description");
-        Task task2 = new Task("task name2", "task description2");
+        tasksManager.createTask("task name", "task description");
+        tasksManager.createTask("task name2", "task description2");
 
-        tasksManager.addTask(task);
-        tasksManager.addTask(task2);
 
         System.out.println(tasksManager.getAllTasksList());
+
+        System.out.println(tasksManager.getById(9));
     }
 }

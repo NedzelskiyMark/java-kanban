@@ -1,7 +1,7 @@
 public class Task {
     private String name;
     private String description;
-    private final int id;
+    private final Integer id;
     private static int count = 0;
     private TaskStatus taskStatus;
 
@@ -29,7 +29,7 @@ public class Task {
         this.description = description;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
