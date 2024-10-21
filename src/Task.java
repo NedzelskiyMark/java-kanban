@@ -5,7 +5,7 @@ public class Task {
     private static int count = 0;
     private TaskStatus taskStatus;
 
-    public Task (String name, String description) {
+    public Task(String name, String description) {
         count++;
         id = count;
         this.taskStatus = TaskStatus.NEW;
@@ -39,5 +39,11 @@ public class Task {
 
     public void setTaskStatus(TaskStatus taskStatus) {
         this.taskStatus = taskStatus;
+    }
+
+    @Override
+    public String toString() {
+        return "{id=" + getId() + ", name='" + getName() + "', description='" + getDescription() + "', status="
+                + getTaskStatus() + "'}";
     }
 }

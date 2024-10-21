@@ -1,6 +1,7 @@
-public class SubTask  extends Task {
+public class SubTask extends Task {
     private int relationEpicId;
-    SubTask (String name, String description) {
+
+    SubTask(String name, String description) {
         super(name, description);
     }
 
