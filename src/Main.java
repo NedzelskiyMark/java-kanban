@@ -18,6 +18,6 @@ public class Main {
 
         System.out.println(tasksManager.getAllTasksList());
 
-        System.out.println(tasksManager.getById(9));
+        System.out.println(tasksManager.getTaskById(9));
     }
 }

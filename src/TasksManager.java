@@ -18,7 +18,7 @@ public class TasksManager {
         tasksList.clear();
     }
 
-    public Task getById(int idToFind) {
+    public Task getTaskById(int idToFind) {
         for (Integer id : tasksList.keySet()) {
             if (id.equals(idToFind)) {
                 return tasksList.get(id);
@@ -54,15 +54,26 @@ public class TasksManager {
     }
 
     public void deleteById(int id) {
+        Task taskToDelete = getTaskById(id);
+        if (taskToDelete.getClass().getName().equals("SubTask")) {
+            Epic relativeEpicForTask = (Epic) tasksList.get(((SubTask) taskToDelete).getRelationEpicId());
+            relativeEpicForTask.getSubTasks().remove(taskToDelete.getId());
+            return;
+        }
+
         tasksList.remove(id);
     }
 
     public ArrayList<SubTask> getAllSubtaskOfEpic(int id) {
-        Epic epicTask = (Epic) getById(id);
+        Epic epicTask = (Epic) getTaskById(id);
         return epicTask.getSubTasks();
     }
 
-
+/*
+Изначально мне казалось что коллекция HashMap<Integer, Task> неплохая идея, более универсально, а там где надо,
+я приведу типы объектов к необходимым. Теперь я не уверен какой подход был бы более оптимальным, так как я сделал
+или писать больше кода, для каждого типа задач, но его было бы на порядок проще читать..
+ */
 
 
 
