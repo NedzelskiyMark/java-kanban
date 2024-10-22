@@ -10,7 +10,7 @@ public class SubTask extends Task {
     }
 
     public void setRelationEpicId(int relationEpicId) {
-
+        //making connection with Epic by recording Epic.id into SubTask
         this.relationEpicId = relationEpicId;
     }
 }

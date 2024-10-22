@@ -1,11 +1,11 @@
 import java.util.HashMap;
 
 public class Epic extends Task {
-    private HashMap<Integer, SubTask> subTasks = new HashMap<>();
+    private HashMap<Integer, SubTask> subTasks;
 
     public Epic(String name, String description) {
         super(name, description);
-        //making connection with SubTasks by recording Epic id into SubTasks
+        subTasks = new HashMap<>();
     }
 
     public HashMap<Integer, SubTask> getSubTasks() {
@@ -20,9 +20,9 @@ public class Epic extends Task {
     public void checkEpicStatus() {
         boolean isAllSubtasksDone = true;
 
-        for (SubTask subtask: subTasks.values()) {
+        for (SubTask subtask : subTasks.values()) {
             if (subtask.getTaskStatus().equals(TaskStatus.NEW) ||
-            subtask.getTaskStatus().equals(TaskStatus.IN_PROGRESS)) {
+                    subtask.getTaskStatus().equals(TaskStatus.IN_PROGRESS)) {
                 isAllSubtasksDone = false;
                 break;
             }

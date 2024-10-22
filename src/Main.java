@@ -10,18 +10,18 @@ public class Main {
         tasksManager.addTask(task1);
         tasksManager.addTask(task2);
 
-        Epic epic1 = new Epic("Сдать на права", "Нужны права на трактор");
-        SubTask subTask1Epic1 = new SubTask("Поступить в автошколу", "Подобрать ее в интернете");
-        SubTask subTask2Epic1 = new SubTask("Подготовиться к экзамену", "Старательно учиться");
-        epic1.addSubTask(subTask1Epic1);
-        epic1.addSubTask(subTask2Epic1);
+        Epic driverLicenseTask = new Epic("Сдать на права", "Нужны права на трактор");
+        SubTask driverLicenseSubtask1 = new SubTask("Поступить в автошколу", "Подобрать ее в интернете");
+        SubTask driverLicenseSubtask2 = new SubTask("Подготовиться к экзамену", "Старательно учиться");
+        driverLicenseTask.addSubTask(driverLicenseSubtask1);
+        driverLicenseTask.addSubTask(driverLicenseSubtask2);
 
-        Epic epic2 = new Epic("Научиться жонглировать", "Найти тренера");
-        SubTask subTask1Epic2 = new SubTask("Тренироваться 7 дней в неделю", "Купить шарики");
-        epic2.addSubTask(subTask1Epic2);
+        Epic circusTrick = new Epic("Научиться жонглировать", "Найти тренера");
+        SubTask circusTrickSubtask1 = new SubTask("Тренироваться 7 дней в неделю", "Купить шарики");
+        circusTrick.addSubTask(circusTrickSubtask1);
 
-        tasksManager.addTask(epic1);
-        tasksManager.addTask(epic2);
+        tasksManager.addTask(driverLicenseTask);
+        tasksManager.addTask(circusTrick);
 
         System.out.println();
         System.out.println("Список задач и эпиков, затем список подзадач эпика");
@@ -33,17 +33,17 @@ public class Main {
         System.out.println("Обновление задачи и подзадачи эпика");
         System.out.println("---------------------------------------------------");
         tasksManager.updateTask(1, task1);
-        tasksManager.updateTask(4, subTask1Epic1);
+        tasksManager.updateTask(4, driverLicenseSubtask1);
         System.out.println(tasksManager.getAllTasksList());
 
         System.out.println();
         System.out.println("Задача обновлена до DONE, также как и подзадачи эпика");
         System.out.println("---------------------------------------------------");
         tasksManager.updateTask(1, task1);//задача меняет статус на DONE
-        tasksManager.updateTask(4, subTask1Epic1);
-        tasksManager.updateTask(4, subTask1Epic1);
-        tasksManager.updateTask(5, subTask2Epic1);
-        tasksManager.updateTask(5, subTask2Epic1);
+        tasksManager.updateTask(4, driverLicenseSubtask1);
+        tasksManager.updateTask(4, driverLicenseSubtask1);
+        tasksManager.updateTask(5, driverLicenseSubtask2);
+        tasksManager.updateTask(5, driverLicenseSubtask2);
         System.out.println(tasksManager.getAllTasksList());
 
         System.out.println();

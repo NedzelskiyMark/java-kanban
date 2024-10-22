@@ -24,8 +24,8 @@ public class TasksManager {
         if (tasksList.containsKey(idToFind)) {
             return tasksList.get(idToFind);
         }
-
-        for (Task taskToCheck: tasksList.values()) {
+        //searching Task inside Epic
+        for (Task taskToCheck : tasksList.values()) {
             if (taskToCheck.getClass().getName().equals("Epic")) {
                 Epic convertedTaskToCheck = (Epic) taskToCheck;
                 if (convertedTaskToCheck.getSubTasks().containsKey(idToFind)) {
@@ -33,13 +33,14 @@ public class TasksManager {
                 }
             }
         }
-        //must find better option than return null
+
         return null;
     }
 
     public void addTask(Task newTask) {
         tasksList.put(newTask.getId(), newTask);
     }
+
     //как я понял метод обновления задачи нужен для обновления статуса задачи, а не его имени, описания и т.д.
     public void updateTask(int id, Task updatedTask) {
         switch (updatedTask.getTaskStatus()) {
@@ -52,7 +53,7 @@ public class TasksManager {
 
         if (updatedTask.getClass().getName().equals("SubTask")) {
             SubTask updatedTaskCopy = (SubTask) updatedTask;
-            Epic relatedEpic =(Epic) tasksList.get(updatedTaskCopy.getRelationEpicId());
+            Epic relatedEpic = (Epic) tasksList.get(updatedTaskCopy.getRelationEpicId());
             relatedEpic.getSubTasks().put(id, updatedTaskCopy);
             relatedEpic.checkEpicStatus();
             return;
@@ -64,6 +65,7 @@ public class TasksManager {
 
     public void deleteById(int id) {
         Task taskToDelete = getTaskById(id);
+        //if Task is SubTask we remove it from Epic Subtask list, if it's not we remove it from TaskManager Task list
         if (taskToDelete.getClass().getName().equals("SubTask")) {
             Epic relativeEpicForTask = (Epic) tasksList.get(((SubTask) taskToDelete).getRelationEpicId());
             relativeEpicForTask.getSubTasks().remove(taskToDelete.getId());
@@ -83,8 +85,4 @@ public class TasksManager {
 я приведу типы объектов к необходимым. Теперь я не уверен какой подход был бы более оптимальным, тот что я выбрал
 или было лучше писать больше кода, коллекции для каждого типа задач, но его было бы на порядок проще читать..
  */
-
-
-
-
 }
