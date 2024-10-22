@@ -1,7 +1,9 @@
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.ArrayList;
 
 public class TasksManager {
+    //this hashmap will include Task and Epic tasks, inside Epic will be HashMap with Subtasks
     private HashMap<Integer, Task> tasksList = new HashMap<>();
 
     public ArrayList<Task> getAllTasksList() {
@@ -19,38 +21,45 @@ public class TasksManager {
     }
 
     public Task getTaskById(int idToFind) {
-        for (Integer id : tasksList.keySet()) {
-            if (id.equals(idToFind)) {
-                return tasksList.get(id);
-            }
-            //if current task is Epic, we will search in it's SubTasks
-            Task taskCopy = tasksList.get(id);
-            if (taskCopy.getClass().getName().equals("Epic")) {
-                ArrayList<SubTask> tempList = ((Epic) taskCopy).getSubTasks();
-                for (SubTask subTaskFromEpic : tempList) {
-                    if (subTaskFromEpic.getId().equals(idToFind)) {
-                        return subTaskFromEpic;
-                    }
+        if (tasksList.containsKey(idToFind)) {
+            return tasksList.get(idToFind);
+        }
+
+        for (Task taskToCheck: tasksList.values()) {
+            if (taskToCheck.getClass().getName().equals("Epic")) {
+                Epic convertedTaskToCheck = (Epic) taskToCheck;
+                if (convertedTaskToCheck.getSubTasks().containsKey(idToFind)) {
+                    return convertedTaskToCheck.getSubTasks().get(idToFind);
                 }
             }
         }
-        //must find better option
+        //must find better option than return null
         return null;
     }
 
-    public void createTask(Task newTask) {
+    public void addTask(Task newTask) {
         tasksList.put(newTask.getId(), newTask);
     }
-//наверное не понял сути обновления задачи
-    public void updateTask(int id, Task task) {
-        tasksList.put(id, task);
-        switch (task.getTaskStatus()) {
+    //как я понял метод обновления задачи нужен для обновления статуса задачи, а не его имени, описания и т.д.
+    public void updateTask(int id, Task updatedTask) {
+        switch (updatedTask.getTaskStatus()) {
             case NEW:
-                task.setTaskStatus(TaskStatus.IN_PROGRESS);
+                updatedTask.setTaskStatus(TaskStatus.IN_PROGRESS);
                 break;
             case IN_PROGRESS:
-                task.setTaskStatus(TaskStatus.DONE);
+                updatedTask.setTaskStatus(TaskStatus.DONE);
         }
+
+        if (updatedTask.getClass().getName().equals("SubTask")) {
+            SubTask updatedTaskCopy = (SubTask) updatedTask;
+            Epic relatedEpic =(Epic) tasksList.get(updatedTaskCopy.getRelationEpicId());
+            relatedEpic.getSubTasks().put(id, updatedTaskCopy);
+            relatedEpic.checkEpicStatus();
+            return;
+        }
+
+        tasksList.put(id, updatedTask);
+
     }
 
     public void deleteById(int id) {
@@ -64,15 +73,15 @@ public class TasksManager {
         tasksList.remove(id);
     }
 
-    public ArrayList<SubTask> getAllSubtaskOfEpic(int id) {
+    public Collection<SubTask> getAllSubtaskOfEpic(int id) {
         Epic epicTask = (Epic) getTaskById(id);
-        return epicTask.getSubTasks();
+        return epicTask.getSubTasks().values();
     }
 
 /*
 Изначально мне казалось что коллекция HashMap<Integer, Task> неплохая идея, более универсально, а там где надо,
-я приведу типы объектов к необходимым. Теперь я не уверен какой подход был бы более оптимальным, так как я сделал
-или писать больше кода, для каждого типа задач, но его было бы на порядок проще читать..
+я приведу типы объектов к необходимым. Теперь я не уверен какой подход был бы более оптимальным, тот что я выбрал
+или было лучше писать больше кода, коллекции для каждого типа задач, но его было бы на порядок проще читать..
  */
 
 

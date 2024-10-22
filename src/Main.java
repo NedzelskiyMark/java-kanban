@@ -1,23 +1,62 @@
-import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
 
         TasksManager tasksManager = new TasksManager();
 
-        ArrayList<SubTask> sub = new ArrayList<>();
-        sub.add(new SubTask("имя 1", "описание 1"));
-        sub.add(new SubTask("имя 2", "описание 2"));
-        sub.add(new SubTask("имя 3", "описание 3"));
-        tasksManager.createTask("имя эпика", "описание эпика", sub);
+        Task task1 = new Task("Помыть посуду", "Горячей воды нет");
+        Task task2 = new Task("Сходить погулять", "Посмотреть заранее погоду");
 
+        tasksManager.addTask(task1);
+        tasksManager.addTask(task2);
 
-        tasksManager.createTask("task name", "task description");
-        tasksManager.createTask("task name2", "task description2");
+        Epic epic1 = new Epic("Сдать на права", "Нужны права на трактор");
+        SubTask subTask1Epic1 = new SubTask("Поступить в автошколу", "Подобрать ее в интернете");
+        SubTask subTask2Epic1 = new SubTask("Подготовиться к экзамену", "Старательно учиться");
+        epic1.addSubTask(subTask1Epic1);
+        epic1.addSubTask(subTask2Epic1);
 
+        Epic epic2 = new Epic("Научиться жонглировать", "Найти тренера");
+        SubTask subTask1Epic2 = new SubTask("Тренироваться 7 дней в неделю", "Купить шарики");
+        epic2.addSubTask(subTask1Epic2);
 
+        tasksManager.addTask(epic1);
+        tasksManager.addTask(epic2);
+
+        System.out.println();
+        System.out.println("Список задач и эпиков, затем список подзадач эпика");
+        System.out.println("---------------------------------------------------");
+        System.out.println(tasksManager.getAllTasksList());
+        System.out.println(tasksManager.getAllSubtaskOfEpic(3));
+
+        System.out.println();
+        System.out.println("Обновление задачи и подзадачи эпика");
+        System.out.println("---------------------------------------------------");
+        tasksManager.updateTask(1, task1);
+        tasksManager.updateTask(4, subTask1Epic1);
         System.out.println(tasksManager.getAllTasksList());
 
-        System.out.println(tasksManager.getTaskById(9));
+        System.out.println();
+        System.out.println("Задача обновлена до DONE, также как и подзадачи эпика");
+        System.out.println("---------------------------------------------------");
+        tasksManager.updateTask(1, task1);//задача меняет статус на DONE
+        tasksManager.updateTask(4, subTask1Epic1);
+        tasksManager.updateTask(4, subTask1Epic1);
+        tasksManager.updateTask(5, subTask2Epic1);
+        tasksManager.updateTask(5, subTask2Epic1);
+        System.out.println(tasksManager.getAllTasksList());
+
+        System.out.println();
+        System.out.println("Удаление задачи и эпика");
+        System.out.println("---------------------------------------------------");
+        tasksManager.deleteById(2);
+        tasksManager.deleteById(6);
+        System.out.println(tasksManager.getAllTasksList());
+
+        System.out.println();
+        System.out.println("Удаление всех задач");
+        System.out.println("---------------------------------------------------");
+        tasksManager.deleteAllTasks();
+        System.out.println(tasksManager.getAllTasksList());
     }
 }

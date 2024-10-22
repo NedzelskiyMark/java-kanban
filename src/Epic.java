@@ -1,55 +1,39 @@
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Epic extends Task {
-    private ArrayList<SubTask> subTasks;
+    private HashMap<Integer, SubTask> subTasks = new HashMap<>();
 
-    public Epic(String name, String description, ArrayList<SubTask> subTasks) {
+    public Epic(String name, String description) {
         super(name, description);
-        this.subTasks = subTasks;
         //making connection with SubTasks by recording Epic id into SubTasks
-        for (SubTask subTask : subTasks) {
-            subTask.setRelationEpicId(this.getId());
-        }
     }
 
-    public ArrayList<SubTask> getSubTasks() {
+    public HashMap<Integer, SubTask> getSubTasks() {
         return subTasks;
     }
 
-    public void setSubTasks(ArrayList<SubTask> subTasks) {
-        this.subTasks = subTasks;
+    public void addSubTask(SubTask subTask) {
+        this.subTasks.put(subTask.getId(), subTask);
+        subTask.setRelationEpicId(this.getId());
     }
 
     public void checkEpicStatus() {
-        boolean isNewTasksInside = false;
-        boolean isInProgressTasksInside = false;
-        boolean isDoneTasksInside = false;
+        boolean isAllSubtasksDone = true;
 
-        for (SubTask subTask: subTasks) {
-            switch (subTask.getTaskStatus()) {
-                case NEW:
-                    isNewTasksInside = true;
-                    break;
-                case IN_PROGRESS:
-                    isInProgressTasksInside = true;
-                case DONE:
-                    isDoneTasksInside = true;
+        for (SubTask subtask: subTasks.values()) {
+            if (subtask.getTaskStatus().equals(TaskStatus.NEW) ||
+            subtask.getTaskStatus().equals(TaskStatus.IN_PROGRESS)) {
+                isAllSubtasksDone = false;
+                break;
             }
         }
-
-        if (isDoneTasksInside && !(isInProgressTasksInside || isNewTasksInside)) {
-            //only Done tasks inside
-            setTaskStatus(TaskStatus.DONE);
-
-        } else if (isNewTasksInside && !(isInProgressTasksInside || isDoneTasksInside)) {
-            //only NEW tasks inside
-            //nothing will change, status already is NEW
+        //if all SubTasks is DONE, Epic is DONE, else Epic IN_PROGRESS because this method use only when
+        // SubTask status is updated
+        if (isAllSubtasksDone) {
+            this.setTaskStatus(TaskStatus.DONE);
         } else {
-            setTaskStatus(TaskStatus.IN_PROGRESS);
+            this.setTaskStatus(TaskStatus.IN_PROGRESS);
         }
-        //выбрал именно такой порядок т.к. показалось что проще описать две этих ситуации, а в ином случае ставить
-        //статус IN_PROGRESS, чем описывать все варианты при которых Epic будет IN_PROGRESS
-
     }
 }
 
