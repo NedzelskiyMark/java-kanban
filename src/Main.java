@@ -1,3 +1,8 @@
+import Manager.TasksManager;
+import Model.Epic;
+import Model.SubTask;
+import Model.Task;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -7,21 +12,24 @@ public class Main {
         Task task1 = new Task("Помыть посуду", "Горячей воды нет");
         Task task2 = new Task("Сходить погулять", "Посмотреть заранее погоду");
 
-        tasksManager.addTask(task1);
-        tasksManager.addTask(task2);
+        tasksManager.addTaskToList(task1);
+        tasksManager.addTaskToList(task2);
 
         Epic driverLicenseTask = new Epic("Сдать на права", "Нужны права на трактор");
         SubTask driverLicenseSubtask1 = new SubTask("Поступить в автошколу", "Подобрать ее в интернете");
         SubTask driverLicenseSubtask2 = new SubTask("Подготовиться к экзамену", "Старательно учиться");
-        driverLicenseTask.addSubTask(driverLicenseSubtask1);
-        driverLicenseTask.addSubTask(driverLicenseSubtask2);
+        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask1);
+        tasksManager.addSubTaskToList(driverLicenseSubtask1);
+        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask2);
+        tasksManager.addSubTaskToList(driverLicenseSubtask2);
 
         Epic circusTrick = new Epic("Научиться жонглировать", "Найти тренера");
         SubTask circusTrickSubtask1 = new SubTask("Тренироваться 7 дней в неделю", "Купить шарики");
-        circusTrick.addSubTask(circusTrickSubtask1);
+        circusTrick.addSubTaskIdToEpic(circusTrickSubtask1);
+        tasksManager.addSubTaskToList(circusTrickSubtask1);
 
-        tasksManager.addTask(driverLicenseTask);
-        tasksManager.addTask(circusTrick);
+        tasksManager.addEpicToList(driverLicenseTask);
+        tasksManager.addEpicToList(circusTrick);
 
         System.out.println();
         System.out.println("Список задач и эпиков, затем список подзадач эпика");
@@ -52,6 +60,13 @@ public class Main {
         tasksManager.deleteById(2);
         tasksManager.deleteById(6);
         System.out.println(tasksManager.getAllTasksList());
+
+        System.out.println();
+        System.out.println("Проверка метода getTaskById");
+        System.out.println("---------------------------------------------------");
+        System.out.println(tasksManager.getTaskById(1));
+        System.out.println(tasksManager.getTaskById(3));
+        System.out.println(tasksManager.getTaskById(5));
 
         System.out.println();
         System.out.println("Удаление всех задач");
