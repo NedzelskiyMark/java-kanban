@@ -1,25 +1,23 @@
 package Manager;
 
-import Model.Epic;
-import Model.SubTask;
-import Model.Task;
-import Model.TaskStatus;
+import Model.*;
 
 import java.util.HashMap;
 import java.util.ArrayList;
 
-/*
-Из предложенных тобой вариантов (класс-обертка для списков задач или нескольких хэшмепов для них), выбрал хэшмепы,
-т.к. вроде понимаю как реализовать класс-обертку, но не стал усложнять код, т.к. действительно не представляю как
-это скажется на дальнейшем развитии проекта. Спасибо за помощь!:)
- */
-public class TasksManager {
-    //времена действительно страдают у меня в английском, пока что)
+public class InMemoryTasksManager implements TaskManager {
     private HashMap<Integer, Task> tasksList = new HashMap<>();
     private HashMap<Integer, Epic> epicsList = new HashMap<>();
     private HashMap<Integer, SubTask> subtasksList = new HashMap<>();
 
+    //Список занятых id, чтобы нельзя было назначить уже используемый id,
+    //использую String чтобы можно было удалять элемент по значению
+    private ArrayList<String> idInUse = new ArrayList<>();
 
+    private HistoryManager historyManager = Managers.getDefaultHistory();
+
+
+    @Override
     public ArrayList<Task> getAllTasksList() {
         ArrayList<Task> allTasksList = new ArrayList<>();
         allTasksList.addAll(tasksList.values());
@@ -36,41 +34,51 @@ public class TasksManager {
         return allTasksList;
     }
 
+    @Override
     public void deleteAllTasks() {
         tasksList.clear();
         epicsList.clear();
         subtasksList.clear();
     }
 
+    @Override
     public Task getTaskById(int idToFind) {
+        Task foundTask = null;
         if (tasksList.containsKey(idToFind)) {
-            return tasksList.get(idToFind);
+            foundTask = tasksList.get(idToFind);
         }
 
         if (epicsList.containsKey(idToFind)) {
-            return epicsList.get(idToFind);
+            foundTask = epicsList.get(idToFind);
         }
 
         if (subtasksList.containsKey(idToFind)) {
-            return subtasksList.get(idToFind);
+            foundTask = subtasksList.get(idToFind);
         }
 
-        return null;
+        historyManager.add(foundTask);
+        return foundTask;
     }
 
+    @Override
     public void addTaskToList(Task newTask) {
         tasksList.put(newTask.getId(), newTask);
+        idInUse.add(String.valueOf(newTask.getId()));
     }
 
+    @Override
     public void addEpicToList(Epic newEpic) {
         epicsList.put(newEpic.getId(), newEpic);
+        idInUse.add(String.valueOf(newEpic.getId()));
     }
 
+    @Override
     public void addSubTaskToList(SubTask newSubtask) {
         subtasksList.put(newSubtask.getId(), newSubtask);
+        idInUse.add(String.valueOf(newSubtask.getId()));
     }
 
-    //как я понял метод обновления задачи нужен для обновления статуса задачи, а не его имени, описания и т.д.
+    @Override
     public void updateTask(int id, Task updatedTask) {
         switch (updatedTask.getTaskStatus()) {
             case NEW:
@@ -91,6 +99,7 @@ public class TasksManager {
 
     }
 
+    @Override
     public void checkAndSetEpicStatus(int epicId) {
         boolean isAllSubtasksDone = true;
 
@@ -112,21 +121,26 @@ public class TasksManager {
         }
     }
 
+    @Override
     public void deleteById(int idToRemove) {
         if (tasksList.containsKey(idToRemove)) {
             tasksList.remove(idToRemove);
+            idInUse.remove(String.valueOf(idToRemove));
         }
 
         if (subtasksList.containsKey(idToRemove)) {
             subtasksList.remove(idToRemove);
+            idInUse.remove(String.valueOf(idToRemove));
         }
         //если удаляется эпик, удаляются все его подзадачи
         if (epicsList.containsKey(idToRemove)) {
             epicsList.remove(idToRemove);
+            idInUse.remove(String.valueOf(idToRemove));
             removeSubtasksOfEpic(idToRemove);//добавил метод, чтобы разгрузить действующий метод
         }
     }
 
+    @Override
     public void removeSubtasksOfEpic(int id) {
         //создаю список, куда положу id подзадач для удаления, т.к. в foreach нельзя редактировать список, в цикле for
         // возникала ошибка, этот способ показался оптимальным из всех что я придумал)
@@ -140,9 +154,11 @@ public class TasksManager {
 
         for (Integer idToRemove : idSubtasksToRemove) {
             subtasksList.remove(idToRemove);
+            idInUse.remove(String.valueOf(idToRemove));
         }
     }
 
+    @Override
     public ArrayList<SubTask> getAllSubtaskOfEpic(int id) {
         ArrayList<SubTask> epicRelatedSubtasks = new ArrayList<>();
         for (SubTask subtask : subtasksList.values()) {
@@ -153,4 +169,11 @@ public class TasksManager {
 
         return epicRelatedSubtasks;
     }
+
+    @Override
+    public ArrayList<Task> getHistory() {
+
+        return historyManager.getHistory();
+    }
+
 }

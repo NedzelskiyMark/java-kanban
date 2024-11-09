@@ -5,9 +5,11 @@ import java.util.Objects;
 public class Task {
     private String name;
     private String description;
-    private final Integer id;
+    private Integer id;
     private static int count = 0;
     private TaskStatus taskStatus;
+
+    private int relationEpicId;
 
     public Task(String name, String description) {
         count++;
@@ -15,6 +17,11 @@ public class Task {
         this.taskStatus = TaskStatus.NEW;
         this.name = name;
         this.description = description;
+    }
+
+    public Task(String name, String description, int id) {
+        this(name, description);
+        this.id = id;
     }
 
     public String getName() {
@@ -62,5 +69,17 @@ public class Task {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public int getRelationEpicId() {
+        return relationEpicId;
+    }
+
+    public int setRelationEpicId(Task epicTask) {
+        if (epicTask.getId().equals(this.getId())) {
+            return -1;
+        }
+        this.relationEpicId = epicTask.getId();
+        return 1;
     }
 }

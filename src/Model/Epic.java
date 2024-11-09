@@ -14,9 +14,14 @@ public class Epic extends Task {
         return subTasks;
     }
 
-    public void addSubTaskIdToEpic(SubTask subtask) {
-        this.subTasks.add(subtask.getId());
-        subtask.setRelationEpicId(this.getId());
+    public int addSubTaskIdToEpic(Task task) {
+        if (task.getId().equals(this.getId())) {
+            return -1;
+        }
+        this.subTasks.add(task.getId());
+        task.setRelationEpicId(this);
+
+        return 1;
     }
 }
 

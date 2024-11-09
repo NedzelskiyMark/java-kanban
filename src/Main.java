@@ -1,13 +1,12 @@
-import Manager.TasksManager;
-import Model.Epic;
-import Model.SubTask;
-import Model.Task;
+import Manager.Managers;
+import Manager.TaskManager;
+import Model.*;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        TasksManager tasksManager = new TasksManager();
+        TaskManager tasksManager = Managers.getDefault();
 
         Task task1 = new Task("Помыть посуду", "Горячей воды нет");
         Task task2 = new Task("Сходить погулять", "Посмотреть заранее погоду");
