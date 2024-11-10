@@ -9,5 +9,5 @@ public interface HistoryManager {
 
     Collection<Task> getHistory();
 
-    public void clearHistoryList();
+    void clearHistoryList();
 }
