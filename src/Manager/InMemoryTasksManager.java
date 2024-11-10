@@ -6,12 +6,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.List;
 
-/*
- * Спасибо за ревью, есть над чем подумать! Этот спринт тяжело прошел, вроде все понимаю, но где и как применять
- * все эти возможности полиморфизма, интерфейсы, дженерики, мягко говоря голова кругом. Надеюсь это все со временем
- * стабилизируется и придет дзен..:)
- * */
+
 public class InMemoryTasksManager implements TaskManager {
     private Map<Integer, Task> tasksList = new HashMap<>();
     private Map<Integer, Epic> epicsList = new HashMap<>();
@@ -25,8 +22,8 @@ public class InMemoryTasksManager implements TaskManager {
 
 
     @Override
-    public ArrayList<Task> getAllTasksList() {
-        ArrayList<Task> allTasksList = new ArrayList<>();
+    public List<Task> getAllTasksList() {
+        List<Task> allTasksList = new ArrayList<>();
         allTasksList.addAll(tasksList.values());
 
         //немного усложнил, хотел сделать чтобы в списке всех задач был порядок,

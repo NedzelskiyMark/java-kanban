@@ -19,7 +19,7 @@ class InMemoryHistoryManagerTest {
     private static HistoryManager historyManager = Managers.getDefaultHistory();
     private static List<Task> testTasksList = new ArrayList<>();
 
-    LinkedList<Task> tasksFromHistory = new LinkedList<>();
+    List<Task> tasksFromHistory = new LinkedList<>();
 
     @BeforeAll
     public static void prepare() {
