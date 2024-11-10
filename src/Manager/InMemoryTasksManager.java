@@ -2,17 +2,24 @@ package Manager;
 
 import Model.*;
 
+import java.util.Map;
 import java.util.HashMap;
+import java.util.Collection;
 import java.util.ArrayList;
 
+/*
+ * Спасибо за ревью, есть над чем подумать! Этот спринт тяжело прошел, вроде все понимаю, но где и как применять
+ * все эти возможности полиморфизма, интерфейсы, дженерики, мягко говоря голова кругом. Надеюсь это все со временем
+ * стабилизируется и придет дзен..:)
+ * */
 public class InMemoryTasksManager implements TaskManager {
-    private HashMap<Integer, Task> tasksList = new HashMap<>();
-    private HashMap<Integer, Epic> epicsList = new HashMap<>();
-    private HashMap<Integer, SubTask> subtasksList = new HashMap<>();
+    private Map<Integer, Task> tasksList = new HashMap<>();
+    private Map<Integer, Epic> epicsList = new HashMap<>();
+    private Map<Integer, SubTask> subtasksList = new HashMap<>();
 
     //Список занятых id, чтобы нельзя было назначить уже используемый id,
     //использую String чтобы можно было удалять элемент по значению
-    private ArrayList<String> idInUse = new ArrayList<>();
+    private Collection<String> idInUse = new ArrayList<>();
 
     private HistoryManager historyManager = Managers.getDefaultHistory();
 
@@ -171,7 +178,7 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Task> getHistory() {
+    public Collection<Task> getHistory() {
 
         return historyManager.getHistory();
     }
