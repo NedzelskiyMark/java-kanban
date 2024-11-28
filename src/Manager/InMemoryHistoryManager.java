@@ -2,21 +2,22 @@ package Manager;
 
 import Model.Task;
 
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private LinkedList<Task> historyList = new LinkedList<>();
+    private Map<Integer, Task> historyList = new LinkedHashMap<>();
 
     @Override
     public void add(Task task) {
-        if (historyList.size() == 10) {
-            historyList.remove(0);
+        if (historyList.containsKey(task.getId())) {
+            historyList.remove(task.getId());
         }
-        historyList.add(task);
+        historyList.put(task.getId(), task);
     }
 
     @Override
-    public LinkedList<Task> getHistory() {
+    public Map<Integer, Task> getHistory() {
         return historyList;
     }
 
