@@ -11,4 +11,6 @@ public interface HistoryManager {
     Map<Integer, Task> getHistory();
 
     void clearHistoryList();
+
+    void remove(int id);
 }

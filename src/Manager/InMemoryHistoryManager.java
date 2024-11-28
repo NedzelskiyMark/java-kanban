@@ -25,4 +25,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     public void clearHistoryList() {
         historyList.clear();
     }
+
+    @Override
+    public void remove(int id) {
+        historyList.remove(id);
+    }
 }
