@@ -12,10 +12,6 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
-    /*
-     * Спасибо за замечание, понял что без нужды нагружал тесты созданием TaskManager, думал что лучше будет
-     * воссоздать логику работы программы, поэтому и создал этот менеджер..
-     * */
     private static HistoryManager historyManager = Managers.getDefaultHistory();
     private static List<Task> testTasksList = new ArrayList<>();
 
@@ -42,7 +38,7 @@ class InMemoryHistoryManagerTest {
         historyManager.add(task1);
 
 
-        tasksFromHistory = (LinkedList<Task>) historyManager.getHistory();
+        tasksFromHistory = historyManager.getHistory();
 
         Task taskFromHistory = tasksFromHistory.get(0);
         /*
@@ -67,7 +63,7 @@ class InMemoryHistoryManagerTest {
             historyManager.add(task);
         }
 
-        tasksFromHistory = (LinkedList<Task>) historyManager.getHistory();
+        tasksFromHistory = historyManager.getHistory();
 
         for (int i = 0; i < tasksFromHistory.size(); i++) {
             assertEquals(tasksFromHistory.get(i), testTasksList.get(i));
@@ -75,26 +71,30 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    public void addSameTaskToHistoryList() {
-        historyManager.add(testTasksList.get(0));
-        historyManager.add(testTasksList.get(0));
+    public void addSameTaskToHistoryListWillReplaceItInLastPlace() {
+        for (Task task : testTasksList) {
+            historyManager.add(task);
+        }
+        historyManager.add(testTasksList.get(1));
 
         LinkedList<Task> listToCheck = new LinkedList<>();
         listToCheck.add(testTasksList.get(0));
-        listToCheck.add(testTasksList.get(0));
+        listToCheck.add(testTasksList.get(2));
+        listToCheck.add(testTasksList.get(3));
+        listToCheck.add(testTasksList.get(4));
+        listToCheck.add(testTasksList.get(1));
 
         assertEquals(listToCheck, historyManager.getHistory());
     }
 
     @Test
-    public void historyIs10ElementOnly() {
-        //добавляем суммарно 15 элементов в историю
-        for (int i = 0; i < 3; i++) {
-            for (Task task : testTasksList) {
-                historyManager.add(task);
-            }
+    public void historyListIsNotLimitedByTen() {
+        for (int i = 0; i < 15; i++) {
+            historyManager.add(new Task("Task " + i, "Description " + i));
         }
 
-        assertEquals(10, historyManager.getHistory().size());
+        int expectedSize = 15;
+
+        assertEquals(expectedSize, historyManager.getHistory().size());
     }
 }

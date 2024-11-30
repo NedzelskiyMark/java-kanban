@@ -5,7 +5,7 @@ import Model.SubTask;
 import Model.Task;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 
 public interface TaskManager {
     Collection<Task> getAllTasksList();
@@ -30,5 +30,5 @@ public interface TaskManager {
 
     Collection<SubTask> getAllSubtaskOfEpic(int id);
 
-    Map<Integer, Task> getHistory();
+    List<Task> getHistory();
 }

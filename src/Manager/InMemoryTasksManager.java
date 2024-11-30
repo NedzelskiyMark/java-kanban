@@ -142,6 +142,8 @@ public class InMemoryTasksManager implements TaskManager {
             idInUse.remove(String.valueOf(idToRemove));
             removeSubtasksOfEpic(idToRemove);//добавил метод, чтобы разгрузить действующий метод
         }
+
+        historyManager.remove(idToRemove);
     }
 
     @Override
@@ -175,7 +177,7 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public Map<Integer, Task> getHistory() {
+    public List<Task> getHistory() {
 
         return historyManager.getHistory();
     }

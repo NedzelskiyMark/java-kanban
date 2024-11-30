@@ -1,23 +1,34 @@
 package Manager;
 
 import Model.Task;
+import Model.Node;
 
-import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private Map<Integer, Task> historyList = new LinkedHashMap<>();
+    private Node<Task> head;
+    private Node<Task> tail;
+    private int size;
+    private List<Task> historyList = new LinkedList<>();
+    private Map<Integer, Integer> idIndexInList = new HashMap<>();
+
+    private Map<Integer, Node> nodesMap = new HashMap<>();
 
     @Override
     public void add(Task task) {
-        if (historyList.containsKey(task.getId())) {
-            historyList.remove(task.getId());
+        if (idIndexInList.containsKey(task.getId())) {
+            historyList.remove((int) idIndexInList.get(task.getId()));
+            idIndexInList.remove(task.getId());
         }
-        historyList.put(task.getId(), task);
+        historyList.add(task);
+        idIndexInList.put(task.getId(), historyList.size() - 1);
     }
 
     @Override
-    public Map<Integer, Task> getHistory() {
+    public List<Task> getHistory() {
         return historyList;
     }
 
@@ -28,6 +39,8 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void remove(int id) {
-        historyList.remove(id);
+        if (idIndexInList.containsKey(id)) {
+            historyList.remove((int) idIndexInList.get(id));
+        }
     }
 }

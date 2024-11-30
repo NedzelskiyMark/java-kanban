@@ -8,50 +8,63 @@ public class Main {
 
         TaskManager tasksManager = Managers.getDefault();
 
-        Task task1 = new Task("Помыть посуду", "Горячей воды нет");
-        Task task2 = new Task("Сходить погулять", "Посмотреть заранее погоду");
+        Task task1 = new Task("Задача 1", "Сделать сценарий действий в Main");
+        Task task2 = new Task("Задача 2", "Сварить кофейку");
 
         tasksManager.addTaskToList(task1);
         tasksManager.addTaskToList(task2);
 
-        Epic driverLicenseTask = new Epic("Сдать на права", "Нужны права на трактор");
-        SubTask driverLicenseSubtask1 = new SubTask("Поступить в автошколу", "Подобрать ее в интернете");
-        SubTask driverLicenseSubtask2 = new SubTask("Подготовиться к экзамену", "Старательно учиться");
-        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask1);
-        tasksManager.addSubTaskToList(driverLicenseSubtask1);
-        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask2);
-        tasksManager.addSubTaskToList(driverLicenseSubtask2);
+        Epic driverLicenseTask = new Epic("Эпик 1", "Сдать на права");
+        SubTask driverLicenseSubtask1 = new SubTask("Подзадача 1", "Поступить в автошколу");
+        SubTask driverLicenseSubtask2 = new SubTask("Подзадача 2", "Подготовиться к экзамену");
+        SubTask driverLicenseSubtask3 = new SubTask("Подзадача 3", "Сдать экзамен");
 
-        Epic circusTrick = new Epic("Научиться жонглировать", "Найти тренера");
-        SubTask circusTrickSubtask1 = new SubTask("Тренироваться 7 дней в неделю", "Купить шарики");
-        circusTrick.addSubTaskIdToEpic(circusTrickSubtask1);
-        tasksManager.addSubTaskToList(circusTrickSubtask1);
+        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask1);
+        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask2);
+        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask3);
+        tasksManager.addSubTaskToList(driverLicenseSubtask1);
+        tasksManager.addSubTaskToList(driverLicenseSubtask2);
+        tasksManager.addSubTaskToList(driverLicenseSubtask3);
+
+        Epic circusTrick = new Epic("Эпик 2", "Научиться жонглировать");
 
         tasksManager.addEpicToList(driverLicenseTask);
         tasksManager.addEpicToList(circusTrick);
 
         System.out.println();
-        System.out.println("Список задач и эпиков, затем список подзадач эпика");
+        System.out.println("Список всех задач задач");
         System.out.println("---------------------------------------------------");
-        System.out.println(tasksManager.getAllTasksList());
-        System.out.println(tasksManager.getAllSubtaskOfEpic(3));
-
-        System.out.println();
-        System.out.println("Обновление задачи и подзадачи эпика");
-        System.out.println("---------------------------------------------------");
-        tasksManager.updateTask(1, task1);
-        tasksManager.updateTask(4, driverLicenseSubtask1);
         System.out.println(tasksManager.getAllTasksList());
 
         System.out.println();
-        System.out.println("Задача обновлена до DONE, также как и подзадачи эпика");
+        System.out.println("Проверка работы истории просмотров");
         System.out.println("---------------------------------------------------");
-        tasksManager.updateTask(1, task1);//задача меняет статус на DONE
-        tasksManager.updateTask(4, driverLicenseSubtask1);
-        tasksManager.updateTask(4, driverLicenseSubtask1);
-        tasksManager.updateTask(5, driverLicenseSubtask2);
-        tasksManager.updateTask(5, driverLicenseSubtask2);
-        System.out.println(tasksManager.getAllTasksList());
+        System.out.println("Скрытый вызов задачи 1");
+        tasksManager.getTaskById(1);
+        System.out.println("Проверка записи в истории:");
+        System.out.println(tasksManager.getHistory());
+        System.out.println("***************************");
+        System.out.println("Скрытый вызов задачи 2");
+        tasksManager.getTaskById(2);
+        System.out.println("Проверка записи в истории:");
+        System.out.println(tasksManager.getHistory());
+        System.out.println("***************************");
+        System.out.println("Скрытый вызов задачи 3");
+        tasksManager.getTaskById(3);
+        System.out.println("Проверка записи в истории:");
+        System.out.println(tasksManager.getHistory());
+        System.out.println("***************************");
+        System.out.println("Скрытый вызов задачи 1");
+        tasksManager.getTaskById(1);
+        System.out.println("Проверка записи в истории:");
+        System.out.println(tasksManager.getHistory());
+        System.out.println("***************************");
+        System.out.println("Скрытый вызов задачи 2");
+        tasksManager.getTaskById(2);
+        System.out.println("Проверка записи в истории:");
+        System.out.println(tasksManager.getHistory());
+        System.out.println("***************************");
+
 
         System.out.println();
         System.out.println("Удаление задачи и эпика");
