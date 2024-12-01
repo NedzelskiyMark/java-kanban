@@ -1,4 +1,4 @@
-package Manager;
+package manager;
 
 import model.Task;
 import model.Node;

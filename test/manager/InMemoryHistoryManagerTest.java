@@ -1,4 +1,4 @@
-package Manager;
+package manager;
 
 import model.Task;
 import org.junit.jupiter.api.AfterEach;
