@@ -6,6 +6,7 @@ import model.Task;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class InMemoryTasksManagerTest {
     private static TaskManager tasksManager = Managers.getDefault();
     private Random random = new Random();
+    private static ArrayList<Integer> rightIds = new ArrayList<>();
 
     @BeforeAll
     public static void prepare() {
@@ -20,6 +22,10 @@ class InMemoryTasksManagerTest {
         Epic newEpic = new Epic("Epic name", "Epic description");
         SubTask newSubtask = new SubTask("Subtask name", "Subtask description");
         newEpic.addSubTaskIdToEpic(newSubtask);
+        rightIds.add(newTask.getId());
+        rightIds.add(newEpic.getId());
+        rightIds.add(newSubtask.getId());
+
 
         tasksManager.addTaskToList(newTask);
         tasksManager.addEpicToList(newEpic);
@@ -28,9 +34,9 @@ class InMemoryTasksManagerTest {
 
     @Test
     public void addDifferentTypesOfTasksToTaskManager() {
-        Task taskForCheck1 = tasksManager.getTaskById(1);
-        Task taskForCheck2 = tasksManager.getTaskById(2);
-        Task taskForCheck3 = tasksManager.getTaskById(3);
+        Task taskForCheck1 = tasksManager.getTaskById(rightIds.get(0));
+        Task taskForCheck2 = tasksManager.getTaskById(rightIds.get(1));
+        Task taskForCheck3 = tasksManager.getTaskById(rightIds.get(2));
 
         assertEquals("model.Task", taskForCheck1.getClass().getName());
         assertEquals("model.Epic", taskForCheck2.getClass().getName());
@@ -39,9 +45,9 @@ class InMemoryTasksManagerTest {
 
     @Test
     public void taskManagerCanFindTaskById() {
-        Task findedTask = tasksManager.getTaskById(1);
-        Task findedEpic = tasksManager.getTaskById(2);
-        Task findedSubtask = tasksManager.getTaskById(3);
+        Task findedTask = tasksManager.getTaskById(rightIds.get(0));
+        Task findedEpic = tasksManager.getTaskById(rightIds.get(1));
+        Task findedSubtask = tasksManager.getTaskById(rightIds.get(2));
 
         assertEquals("Task name", findedTask.getName());
         assertEquals("Epic name", findedEpic.getName());
