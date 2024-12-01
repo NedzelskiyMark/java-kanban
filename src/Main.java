@@ -1,6 +1,6 @@
 import Manager.Managers;
 import Manager.TaskManager;
-import Model.*;
+import model.*;
 
 public class Main {
 

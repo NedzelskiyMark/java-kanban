@@ -1,6 +1,6 @@
 package Manager;
 
-import Model.*;
+import model.*;
 
 import java.util.Map;
 import java.util.HashMap;

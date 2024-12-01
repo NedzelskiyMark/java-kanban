@@ -1,8 +1,8 @@
 package Manager;
 
-import Model.Epic;
-import Model.SubTask;
-import Model.Task;
+import model.Epic;
+import model.SubTask;
+import model.Task;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -32,9 +32,9 @@ class InMemoryTasksManagerTest {
         Task taskForCheck2 = tasksManager.getTaskById(2);
         Task taskForCheck3 = tasksManager.getTaskById(3);
 
-        assertEquals("Model.Task", taskForCheck1.getClass().getName());
-        assertEquals("Model.Epic", taskForCheck2.getClass().getName());
-        assertEquals("Model.SubTask", taskForCheck3.getClass().getName());
+        assertEquals("model.Task", taskForCheck1.getClass().getName());
+        assertEquals("model.Epic", taskForCheck2.getClass().getName());
+        assertEquals("model.SubTask", taskForCheck3.getClass().getName());
     }
 
     @Test

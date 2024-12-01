@@ -1,7 +1,6 @@
 package Manager;
 
-import Model.Task;
-import Model.Node;
+import model.Task;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
