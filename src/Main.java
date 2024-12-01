@@ -54,12 +54,12 @@ public class Main {
         System.out.println("Проверка записи в истории:");
         System.out.println(tasksManager.getHistory());
         System.out.println("***************************");
-        System.out.println("Скрытый вызов задачи 1");
+        System.out.println("Повторный вызов задачи 1");
         tasksManager.getTaskById(1);
         System.out.println("Проверка записи в истории:");
         System.out.println(tasksManager.getHistory());
         System.out.println("***************************");
-        System.out.println("Скрытый вызов задачи 2");
+        System.out.println("Повторный вызов задачи 2");
         tasksManager.getTaskById(2);
         System.out.println("Проверка записи в истории:");
         System.out.println(tasksManager.getHistory());
@@ -67,23 +67,22 @@ public class Main {
 
 
         System.out.println();
-        System.out.println("Удаление задачи и эпика");
+        System.out.println("Удаление записи с id1 из истории");
         System.out.println("---------------------------------------------------");
-        tasksManager.deleteById(2);
-        tasksManager.deleteById(6);
-        System.out.println(tasksManager.getAllTasksList());
+        tasksManager.removeTaskFromHistoryList(1);
+        System.out.println(tasksManager.getHistory());
 
         System.out.println();
-        System.out.println("Проверка метода getTaskById");
+        System.out.println("Удаление эпика удалит его и его подзадачи из истории");
         System.out.println("---------------------------------------------------");
-        System.out.println(tasksManager.getTaskById(1));
-        System.out.println(tasksManager.getTaskById(3));
-        System.out.println(tasksManager.getTaskById(5));
-
-        System.out.println();
-        System.out.println("Удаление всех задач");
-        System.out.println("---------------------------------------------------");
-        tasksManager.deleteAllTasks();
-        System.out.println(tasksManager.getAllTasksList());
+        System.out.println("Скрытый вызов 3 подзадач Эпика");
+        tasksManager.getTaskById(4);
+        tasksManager.getTaskById(5);
+        tasksManager.getTaskById(6);
+        System.out.println("История до удаления эпика");
+        System.out.println(tasksManager.getHistory());
+        System.out.println("История после удаления эпика");
+        tasksManager.deleteById(3);
+        System.out.println(tasksManager.getHistory());
     }
 }

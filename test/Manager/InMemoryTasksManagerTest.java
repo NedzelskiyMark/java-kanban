@@ -49,15 +49,6 @@ class InMemoryTasksManagerTest {
     }
 
     @Test
-    public void historyListHaveLimitedSizeTo10() {
-        for (int i = 0; i < 20; i++) {
-            tasksManager.getTaskById(random.nextInt(3));
-        }
-
-        assertEquals(10, tasksManager.getHistory().size());
-    }
-
-    @Test
     public void taskNotChangedAfterAddingInManager() {
         Task newTask = new Task("Task name", "Task description", 555);
 

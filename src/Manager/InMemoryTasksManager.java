@@ -43,6 +43,7 @@ public class InMemoryTasksManager implements TaskManager {
         tasksList.clear();
         epicsList.clear();
         subtasksList.clear();
+        historyManager.clearHistoryList();
     }
 
     @Override
@@ -143,7 +144,7 @@ public class InMemoryTasksManager implements TaskManager {
             removeSubtasksOfEpic(idToRemove);//добавил метод, чтобы разгрузить действующий метод
         }
 
-        historyManager.remove(idToRemove);
+        removeTaskFromHistoryList(idToRemove);
     }
 
     @Override
@@ -161,6 +162,7 @@ public class InMemoryTasksManager implements TaskManager {
         for (Integer idToRemove : idSubtasksToRemove) {
             subtasksList.remove(idToRemove);
             idInUse.remove(String.valueOf(idToRemove));
+            removeTaskFromHistoryList(idToRemove);
         }
     }
 
@@ -182,4 +184,8 @@ public class InMemoryTasksManager implements TaskManager {
         return historyManager.getHistory();
     }
 
+    @Override
+    public void removeTaskFromHistoryList(int id) {
+        historyManager.remove(id);
+    }
 }

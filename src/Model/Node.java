@@ -1,6 +1,6 @@
 package Model;
 
-public class Node <T>{
+public class Node<T> {
     private T data;
     private Node<T> prev;
     private Node<T> next;
@@ -11,7 +11,7 @@ public class Node <T>{
         this.next = null;
     }
 
-    public T getData() {
+    public T getTask() {
         return data;
     }
 
@@ -23,11 +23,19 @@ public class Node <T>{
         this.prev = prev;
     }
 
+    public void setPrevNull() {
+        this.prev = null;
+    }
+
     public Node<T> getNext() {
         return next;
     }
 
     public void setNext(Node<T> next) {
         this.next = next;
+    }
+
+    public void setNextNull() {
+        this.next = null;
     }
 }

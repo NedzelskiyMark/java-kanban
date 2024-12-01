@@ -1,6 +1,7 @@
 package Manager;
 
 import Model.Task;
+import Model.Node;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -75,16 +76,29 @@ class InMemoryHistoryManagerTest {
         for (Task task : testTasksList) {
             historyManager.add(task);
         }
-        historyManager.add(testTasksList.get(1));
+        historyManager.add(testTasksList.get(0));
 
         LinkedList<Task> listToCheck = new LinkedList<>();
-        listToCheck.add(testTasksList.get(0));
+        listToCheck.add(testTasksList.get(1));
         listToCheck.add(testTasksList.get(2));
         listToCheck.add(testTasksList.get(3));
         listToCheck.add(testTasksList.get(4));
-        listToCheck.add(testTasksList.get(1));
+        listToCheck.add(testTasksList.get(0));
 
         assertEquals(listToCheck, historyManager.getHistory());
+
+        //same test for first position in history list
+        historyManager.add(testTasksList.get(1));
+
+        LinkedList<Task> listToCheck2 = new LinkedList<>();
+        listToCheck2.add(testTasksList.get(2));
+        listToCheck2.add(testTasksList.get(3));
+        listToCheck2.add(testTasksList.get(4));
+        listToCheck2.add(testTasksList.get(0));
+        listToCheck2.add(testTasksList.get(1));
+
+        assertEquals(listToCheck2, historyManager.getHistory());
+
     }
 
     @Test
