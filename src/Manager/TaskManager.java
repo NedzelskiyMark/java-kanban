@@ -20,7 +20,7 @@ public interface TaskManager {
 
     void addSubTaskToList(SubTask newSubtask);
 
-    void updateTask(int id, Task updatedTask);
+    void updateTask(Task updatedTask);
 
     void checkAndSetEpicStatus(int epicId);
 

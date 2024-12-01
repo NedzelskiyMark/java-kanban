@@ -25,6 +25,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public void clearHistoryList() {
         nodesMap.clear();
+        size = 0;
+        head = null;
+        tail = null;
     }
 
     @Override

@@ -84,7 +84,7 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public void updateTask(int id, Task updatedTask) {
+    public void updateTask(Task updatedTask) {
         switch (updatedTask.getTaskStatus()) {
             case NEW:
                 updatedTask.setTaskStatus(TaskStatus.IN_PROGRESS);
@@ -97,11 +97,7 @@ public class InMemoryTasksManager implements TaskManager {
             SubTask updatedTaskCopy = (SubTask) updatedTask;
             Epic relatedEpic = epicsList.get(updatedTaskCopy.getRelationEpicId());
             checkAndSetEpicStatus(relatedEpic.getId());//добавил метод, чтобы разгрузить действующий метод
-            return;
         }
-
-        tasksList.put(id, updatedTask);
-
     }
 
     @Override

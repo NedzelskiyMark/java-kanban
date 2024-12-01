@@ -111,4 +111,19 @@ class InMemoryHistoryManagerTest {
 
         assertEquals(expectedSize, historyManager.getHistory().size());
     }
+
+    @Test
+    public void methodClearHistoryDeleteNodes() {
+        for (Task task : testTasksList) {
+            historyManager.add(task);
+        }
+
+        historyManager.clearHistoryList();
+
+        historyManager.add(testTasksList.get(1));
+
+        int expectedSize = 1;
+
+        assertEquals(expectedSize, historyManager.getHistory().size());
+    }
 }
