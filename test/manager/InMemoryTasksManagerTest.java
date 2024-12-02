@@ -7,14 +7,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTasksManagerTest {
     private static TaskManager tasksManager = Managers.getDefault();
+    private static List<Integer> rightIds = new ArrayList<>();
     private Random random = new Random();
-    private static ArrayList<Integer> rightIds = new ArrayList<>();
 
     @BeforeAll
     public static void prepare() {
