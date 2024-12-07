@@ -1,6 +1,6 @@
-package Manager;
+package manager;
 
-import Model.*;
+import model.*;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -43,23 +43,25 @@ public class InMemoryTasksManager implements TaskManager {
         tasksList.clear();
         epicsList.clear();
         subtasksList.clear();
+        historyManager.clearHistoryList();
     }
 
     @Override
     public Task getTaskById(int idToFind) {
-        Task foundTask = null;
+        Task foundTask;
         if (tasksList.containsKey(idToFind)) {
             foundTask = tasksList.get(idToFind);
+            historyManager.add(foundTask);
+            return  foundTask;
         }
 
         if (epicsList.containsKey(idToFind)) {
             foundTask = epicsList.get(idToFind);
+            historyManager.add(foundTask);
+            return foundTask;
         }
 
-        if (subtasksList.containsKey(idToFind)) {
-            foundTask = subtasksList.get(idToFind);
-        }
-
+        foundTask = subtasksList.get(idToFind);
         historyManager.add(foundTask);
         return foundTask;
     }
@@ -83,7 +85,7 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public void updateTask(int id, Task updatedTask) {
+    public void updateTask(Task updatedTask) {
         switch (updatedTask.getTaskStatus()) {
             case NEW:
                 updatedTask.setTaskStatus(TaskStatus.IN_PROGRESS);
@@ -96,11 +98,7 @@ public class InMemoryTasksManager implements TaskManager {
             SubTask updatedTaskCopy = (SubTask) updatedTask;
             Epic relatedEpic = epicsList.get(updatedTaskCopy.getRelationEpicId());
             checkAndSetEpicStatus(relatedEpic.getId());//добавил метод, чтобы разгрузить действующий метод
-            return;
         }
-
-        tasksList.put(id, updatedTask);
-
     }
 
     @Override
@@ -142,6 +140,8 @@ public class InMemoryTasksManager implements TaskManager {
             idInUse.remove(String.valueOf(idToRemove));
             removeSubtasksOfEpic(idToRemove);//добавил метод, чтобы разгрузить действующий метод
         }
+
+        removeTaskFromHistoryList(idToRemove);
     }
 
     @Override
@@ -159,6 +159,7 @@ public class InMemoryTasksManager implements TaskManager {
         for (Integer idToRemove : idSubtasksToRemove) {
             subtasksList.remove(idToRemove);
             idInUse.remove(String.valueOf(idToRemove));
+            removeTaskFromHistoryList(idToRemove);
         }
     }
 
@@ -175,9 +176,13 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public Collection<Task> getHistory() {
+    public List<Task> getHistory() {
 
         return historyManager.getHistory();
     }
 
+    @Override
+    public void removeTaskFromHistoryList(int id) {
+        historyManager.remove(id);
+    }
 }
