@@ -1,34 +1,34 @@
 package manager;
 
 import model.Epic;
+import model.ManagerSaveException;
 import model.SubTask;
 import model.Task;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface TaskManager {
-    Collection<Task> getAllTasksList();
+    List<Task> getAllTasksList();
 
-    void deleteAllTasks();
+    void deleteAllTasks() throws ManagerSaveException;
 
     Task getTaskById(int idToFind);
 
-    void addTaskToList(Task newTask);
+    void addTaskToList(Task newTask) throws ManagerSaveException;
 
-    void addEpicToList(Epic newEpic);
+    void addEpicToList(Epic newEpic) throws ManagerSaveException;
 
-    void addSubTaskToList(SubTask newSubtask);
+    void addSubTaskToList(SubTask newSubtask) throws ManagerSaveException;
 
-    void updateTask(Task updatedTask);
+    void updateTask(Task updatedTask) throws ManagerSaveException;
 
     void checkAndSetEpicStatus(int epicId);
 
-    void deleteById(int idToRemove);
+    void deleteById(int idToRemove) throws ManagerSaveException;
 
-    void removeSubtasksOfEpic(int id);
+    void removeSubtasksOfEpic(int id) throws ManagerSaveException;
 
-    Collection<SubTask> getAllSubtaskOfEpic(int id);
+    List<SubTask> getAllSubtaskOfEpic(int id);
 
     List<Task> getHistory();
 
