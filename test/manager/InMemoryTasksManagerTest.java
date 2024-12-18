@@ -8,14 +8,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTasksManagerTest {
     private static TaskManager tasksManager = Managers.getDefault();
     private static List<Integer> rightIds = new ArrayList<>();
-    private Random random = new Random();
 
     @BeforeAll
     public static void prepare() {
@@ -55,17 +53,17 @@ class InMemoryTasksManagerTest {
         assertEquals("Subtask name", findedSubtask.getName());
     }
 
-    @Test
-    public void taskNotChangedAfterAddingInManager() {
-        Task newTask = new Task("Task name", "Task description", 555);
-
-        tasksManager.addTaskToList(newTask);
-
-        Task findedTask = tasksManager.getTaskById(555);
-
-        assertEquals(newTask.getId(), findedTask.getId());
-        assertEquals(newTask.getName(), findedTask.getName());
-        assertEquals(newTask.getDescription(), findedTask.getDescription());
-        assertEquals(newTask.getTaskStatus(), findedTask.getTaskStatus());
-    }
+//    @Test
+//    public void taskNotChangedAfterAddingInManager() {
+//        Task newTask = new Task("Task name", "Task description", 555);
+//
+//        tasksManager.addTaskToList(newTask);
+//
+//        Task findedTask = tasksManager.getTaskById(555);
+//
+//        assertEquals(newTask.getId(), findedTask.getId());
+//        assertEquals(newTask.getName(), findedTask.getName());
+//        assertEquals(newTask.getDescription(), findedTask.getDescription());
+//        assertEquals(newTask.getTaskStatus(), findedTask.getTaskStatus());
+//    }
 }

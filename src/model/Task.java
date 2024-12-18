@@ -24,7 +24,6 @@ public class Task {
         this(name, description);
         this.id = id;
         this.taskStatus = taskStatus;
-        this.taskStatus = taskStatus;
 
     }
 
@@ -74,9 +73,9 @@ public class Task {
         }
 
         /*
-        * Связь с Эпиками есть только у Субтасков, делаю строку для них с id их Эпика,
-        *  для других задач делаю пустую строку
-        * */
+         * Связь с Эпиками есть только у Субтасков, делаю строку для них с id их Эпика,
+         *  для других задач делаю пустую строку
+         * */
         int relationEpic = this.getRelationEpicId();
         String relationEpicString;
 
@@ -86,7 +85,7 @@ public class Task {
             relationEpicString = Integer.toString(relationEpic);
         }
 
-        return this.id + ","  + taskType + "," + this.name + "," +
+        return this.id + "," + taskType + "," + this.name + "," +
                 this.taskStatus + "," + this.description + "," + relationEpicString + "\n";
     }
 

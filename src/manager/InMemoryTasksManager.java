@@ -11,11 +11,11 @@ import java.util.List;
 
 public class InMemoryTasksManager implements TaskManager {
     /*
-    * Долго думал над тем рефакторить ли код чтобы все задачи были в одной Мапе или оставить как есть,
-    * три разных Мапы под каждый вид задач, возможно дальше это будет удобней.. Решил пока что оставить три разных
-    * Мапы, и так задержался с решением, прошу подсказать, если лучше сделать одну общую Мапу на всех, тогда я
-    * это сделаю :)
-    * */
+     * Долго думал над тем рефакторить ли код чтобы все задачи были в одной Мапе или оставить как есть,
+     * три разных Мапы под каждый вид задач, возможно дальше это будет удобней.. Решил пока что оставить три разных
+     * Мапы, и так задержался с решением, прошу подсказать, если лучше сделать одну общую Мапу на всех, тогда я
+     * это сделаю :)
+     * */
     private Map<Integer, Task> tasksList = new HashMap<>();
     private Map<Integer, Epic> epicsList = new HashMap<>();
     private Map<Integer, SubTask> subtasksList = new HashMap<>();
@@ -30,7 +30,10 @@ public class InMemoryTasksManager implements TaskManager {
     @Override
     public List<Task> getAllTasksList() {
         List<Task> allTasksList = new ArrayList<>();
-        allTasksList.addAll(tasksList.values());
+
+        for (Task task : tasksList.values()) {
+            allTasksList.add(task);
+        }
 
         //немного усложнил, хотел сделать чтобы в списке всех задач был порядок,
         // сначала добавляется эпик, затем его подзадачи, затем следующий эпик и т.д.
@@ -45,7 +48,7 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public void deleteAllTasks() throws ManagerSaveException {
+    public void deleteAllTasks() {
         tasksList.clear();
         epicsList.clear();
         subtasksList.clear();
@@ -58,7 +61,7 @@ public class InMemoryTasksManager implements TaskManager {
         if (tasksList.containsKey(idToFind)) {
             foundTask = tasksList.get(idToFind);
             historyManager.add(foundTask);
-            return  foundTask;
+            return foundTask;
         }
 
         if (epicsList.containsKey(idToFind)) {
@@ -73,25 +76,25 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public void addTaskToList(Task newTask) throws ManagerSaveException {
+    public void addTaskToList(Task newTask) {
         tasksList.put(newTask.getId(), newTask);
         idInUse.add(String.valueOf(newTask.getId()));
     }
 
     @Override
-    public void addEpicToList(Epic newEpic) throws ManagerSaveException {
+    public void addEpicToList(Epic newEpic) {
         epicsList.put(newEpic.getId(), newEpic);
         idInUse.add(String.valueOf(newEpic.getId()));
     }
 
     @Override
-    public void addSubTaskToList(SubTask newSubtask) throws ManagerSaveException {
+    public void addSubTaskToList(SubTask newSubtask) {
         subtasksList.put(newSubtask.getId(), newSubtask);
         idInUse.add(String.valueOf(newSubtask.getId()));
     }
 
     @Override
-    public void updateTask(Task updatedTask) throws ManagerSaveException {
+    public void updateTask(Task updatedTask) {
         switch (updatedTask.getTaskStatus()) {
             case NEW:
                 updatedTask.setTaskStatus(TaskStatus.IN_PROGRESS);
@@ -130,7 +133,7 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public void deleteById(int idToRemove) throws ManagerSaveException {
+    public void deleteById(int idToRemove) {
         if (tasksList.containsKey(idToRemove)) {
             tasksList.remove(idToRemove);
             idInUse.remove(String.valueOf(idToRemove));
@@ -151,7 +154,7 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public void removeSubtasksOfEpic(int id) throws ManagerSaveException {
+    public void removeSubtasksOfEpic(int id) {
         //Создаю список, куда положу id подзадач для удаления, т.к. В foreach нельзя редактировать список, в цикле for
         // возникала ошибка, этот способ показался оптимальным из всех что я придумал)
         ArrayList<Integer> idSubtasksToRemove = new ArrayList<>();

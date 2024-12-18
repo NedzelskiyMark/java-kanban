@@ -5,28 +5,40 @@ import model.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTasksManager {
-    private static TaskManager inMemoryTaskManager = Managers.getDefault();
-    private static final Path taskPath = Paths.get("tasks.csv");
+    private static Path taskPath;
 
-    public FileBackedTaskManager() throws ManagerSaveException {
-        /*
-        *Показалось логичным в конструкторе проверять наличие файла и делать запись первой строчки в него,
-        *если файл есть, восстанавливать задачи в память программы (Мапу в InMemoryTaskManager)
-        * */
-        if (!Files.exists(taskPath)) {
-            createNewFile(taskPath);
+    public FileBackedTaskManager(File file) {
+        taskPath = file.toPath();
+    }
+
+    public static FileBackedTaskManager loadFromFile(File file) {
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
+        if (file.exists()) {
+            List<String> listOfLinesFromFile = getListOfStringFromFile(file);
+
+            for (String line : listOfLinesFromFile) {
+                Task task = fromString(line);
+                if (task.getClass().getSimpleName().equals("Task")) {
+                    taskManager.addTaskToList(task);
+                } else if (task.getClass().getSimpleName().equals("Epic")) {
+                    taskManager.addEpicToList((Epic) task);
+                } else if (task.getClass().getSimpleName().equals("SubTask")) {
+                    taskManager.addSubTaskToList((SubTask) task);
+                }
+            }
         } else {
-            loadFromFile(taskPath.toFile());
+            createNewFile(file.toPath());
         }
+
+        return taskManager;
     }
 
 
-    public void createNewFile(Path path) throws ManagerSaveException {
+    public static void createNewFile(Path path) {
         try {
             Files.createFile(path);
         } catch (IOException e) {
@@ -40,7 +52,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         }
     }
 
-    public void deleteFile(Path path) throws ManagerSaveException {
+    public void deleteFile(Path path) {
         try {
             Files.deleteIfExists(path);
         } catch (IOException e) {
@@ -49,27 +61,20 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
 
     }
 
-    public static void loadFromFile(File file) throws ManagerSaveException {
-        /*
-        * В этом методе я из файла делаю список строк, с каждой строки восстанавливаю задачу,
-        * добавляю эту задачу в память программы (Мапу в InMemoryTaskManager)
-        * */
-        List<String> linesOfTasks = listOfStringFromFile(file);
+    public List<Task> loadListOfTasksFromFile(File file) {
+        List<Task> listOfTasksToReturn = new ArrayList<>();
+        List<String> linesOfTasks = getListOfStringFromFile(file);
 
-        for (String line: linesOfTasks) {
-            Task taskToMemory = fromString(line);
-
-            if (taskToMemory.getClass().getSimpleName().equals("Task")) {
-                inMemoryTaskManager.addTaskToList(taskToMemory);
-            } else if (taskToMemory.getClass().getSimpleName().equals("Epic")) {
-                inMemoryTaskManager.addEpicToList((Epic) taskToMemory);
-            } else if (taskToMemory.getClass().getSimpleName().equals("SubTask")) {
-                inMemoryTaskManager.addSubTaskToList((SubTask) taskToMemory);
-            }
+        for (String line : linesOfTasks) {
+            Task taskFromFile = fromString(line);
+            listOfTasksToReturn.add(taskFromFile);
         }
+
+        return listOfTasksToReturn;
     }
 
-    public static List<String> listOfStringFromFile(File file) throws ManagerSaveException {
+
+    public static List<String> getListOfStringFromFile(File file) {
         List<String> linesOfTasks = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             while (reader.ready()) {
@@ -87,7 +92,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         return linesOfTasks;
     }
 
-    public void save(Task task) throws ManagerSaveException {
+    public void save(Task task) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskPath.toFile(), true))) {
             writer.write(task.toString());
         } catch (IOException e) {
@@ -96,19 +101,19 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     }
 
     public List<String> getListOfTasksFromMemory() {
-        List<Task> listOfTasks = inMemoryTaskManager.getAllTasksList();
+        List<Task> listOfTasks = super.getAllTasksList();
         List<String> listOsStringTasks = new ArrayList<>();
 
-        for (Task task: listOfTasks) {
+        for (Task task : listOfTasks) {
             listOsStringTasks.add(task.toString());
         }
 
         return listOsStringTasks;
     }
 
-    public void saveTasksToFileFromList(List<String> listOfTasks) throws ManagerSaveException {
+    public void saveTasksToFileFromList(List<String> listOfTasks) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskPath.toFile(), true))) {
-            for (String line: listOfTasks) {
+            for (String line : listOfTasks) {
                 writer.write(line + "\n");
             }
         } catch (IOException e) {
@@ -116,7 +121,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         }
     }
 
-    public void updateFileToActualTasks(Path path) throws ManagerSaveException {
+    public void updateFileToActualTasks(Path path) {
         List<String> linesOfTasks = getListOfTasksFromMemory();
         deleteFile(path);
         createNewFile(path);
@@ -163,69 +168,72 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
 
     @Override
     public List<Task> getAllTasksList() {
-        return inMemoryTaskManager.getAllTasksList();
+        return super.getAllTasksList();
     }
 
     @Override
-    public void deleteAllTasks() throws ManagerSaveException {
+    public void deleteAllTasks() {
         /*
-        * Метод очищает список задач, историю, удаляет файл и создает новый,
-        * чтобы программа могла продолжать работу
-        * */
-        inMemoryTaskManager.deleteAllTasks();
-         updateFileToActualTasks(taskPath);
+         * Метод очищает список задач, историю, удаляет файл и создает новый,
+         * чтобы программа могла продолжать работу
+         * */
+        super.deleteAllTasks();
+        updateFileToActualTasks(taskPath);
     }
 
     @Override
     public Task getTaskById(int idToFind) {
-        return inMemoryTaskManager.getTaskById(idToFind);
+        return super.getTaskById(idToFind);
     }
 
     @Override
-    public void addTaskToList(Task newTask) throws ManagerSaveException {
+    public void addTaskToList(Task newTask) {
         super.addTaskToList(newTask);
         save(newTask);
     }
+
     @Override
-    public void addEpicToList(Epic newEpic) throws ManagerSaveException {
+    public void addEpicToList(Epic newEpic) {
         super.addEpicToList(newEpic);
         save(newEpic);
     }
+
     @Override
-    public void addSubTaskToList(SubTask newSubtask) throws ManagerSaveException {
+    public void addSubTaskToList(SubTask newSubtask) {
         super.addSubTaskToList(newSubtask);
         save(newSubtask);
     }
+
     @Override
-    public void updateTask(Task updatedTask) throws ManagerSaveException {
-        inMemoryTaskManager.updateTask(updatedTask);
+    public void updateTask(Task updatedTask) {
+        super.updateTask(updatedTask);
         updateFileToActualTasks(taskPath);
     }
 
     @Override
-    public void deleteById(int idToRemove) throws ManagerSaveException {
-        inMemoryTaskManager.deleteById(idToRemove);
+    public void deleteById(int idToRemove) {
+        super.deleteById(idToRemove);
         updateFileToActualTasks(taskPath);
     }
 
     @Override
-    public void removeSubtasksOfEpic(int id) throws ManagerSaveException {
-        inMemoryTaskManager.removeSubtasksOfEpic(id);
+    public void removeSubtasksOfEpic(int id) {
+        super.removeSubtasksOfEpic(id);
         updateFileToActualTasks(taskPath);
     }
 
     @Override
     public List<SubTask> getAllSubtaskOfEpic(int id) {
-        return inMemoryTaskManager.getAllSubtaskOfEpic(id);
+        return super.getAllSubtaskOfEpic(id);
     }
 
     @Override
     public List<Task> getHistory() {
-        return inMemoryTaskManager.getHistory();
+        return super.getHistory();
     }
 
     @Override
     public void removeTaskFromHistoryList(int id) {
-        inMemoryTaskManager.removeTaskFromHistoryList(id);
+        super.removeTaskFromHistoryList(id);
     }
 }

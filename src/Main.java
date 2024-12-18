@@ -1,20 +1,49 @@
 import manager.FileBackedTaskManager;
-import manager.Managers;
-import manager.TaskManager;
 import model.*;
 
-import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) throws ManagerSaveException {
+
+        Path pathToFile = Paths.get("tasks.csv");
+        FileBackedTaskManager tasksManager = FileBackedTaskManager.loadFromFile(pathToFile.toFile());
+
+//-----------------------------------------------------------------------------------------------------
+//        Task task1 = new Task("Задача 1", "Сделать сценарий действий в Main");
+//        Task task2 = new Task("Задача 2", "Сварить кофейку");
+//
+//        tasksManager.addTaskToList(task1);
+//        tasksManager.addTaskToList(task2);
+//
+//        Epic driverLicenseTask = new Epic("Эпик 1", "Сдать на права");
+//        SubTask driverLicenseSubtask1 = new SubTask("Подзадача 1", "Поступить в автошколу");
+//        SubTask driverLicenseSubtask2 = new SubTask("Подзадача 2", "Подготовиться к экзамену");
+//        SubTask driverLicenseSubtask3 = new SubTask("Подзадача 3", "Сдать экзамен");
+//
+//        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask1);
+//        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask2);
+//        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask3);
+//        tasksManager.addSubTaskToList(driverLicenseSubtask1);
+//        tasksManager.addSubTaskToList(driverLicenseSubtask2);
+//        tasksManager.addSubTaskToList(driverLicenseSubtask3);
+//
+//        Epic circusTrick = new Epic("Эпик 2", "Научиться жонглировать");
+//
+//        tasksManager.addEpicToList(driverLicenseTask);
+//        tasksManager.addEpicToList(circusTrick);
+//
+//        List<Task> listBeforeDelete = tasksManager.getAllTasksList();
+//        tasksManager.deleteById(3);
+//        tasksManager.deleteById(1);
+
+//-------------------------------------------------------------------------------------------------------
+        List<Task> list = tasksManager.getAllTasksList();
+
+        System.out.println(list);
 
 //        TaskManager tasksManager = Managers.getDefault();
 //
@@ -187,33 +216,7 @@ public class Main {
 //        } catch (IOException e) {
 //            throw new RuntimeException(e);
 //        }
-        TaskManager tasksManager = Managers.getFileBackedTaskManager();
 
-//        Task task1 = new Task("Задача 1", "Сделать сценарий действий в Main");
-//        Task task2 = new Task("Задача 2", "Сварить кофейку");
-//
-//        tasksManager.addTaskToList(task1);
-//        tasksManager.addTaskToList(task2);
-//
-//
-//        Epic driverLicenseTask = new Epic("Эпик 1", "Сдать на права");
-//        SubTask driverLicenseSubtask1 = new SubTask("Подзадача 1", "Поступить в автошколу");
-//        SubTask driverLicenseSubtask2 = new SubTask("Подзадача 2", "Подготовиться к экзамену");
-//        SubTask driverLicenseSubtask3 = new SubTask("Подзадача 3", "Сдать экзамен");
-//
-//        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask1);
-//        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask2);
-//        driverLicenseTask.addSubTaskIdToEpic(driverLicenseSubtask3);
-//        tasksManager.addSubTaskToList(driverLicenseSubtask1);
-//        tasksManager.addSubTaskToList(driverLicenseSubtask2);
-//        tasksManager.addSubTaskToList(driverLicenseSubtask3);
-//
-//        Epic circusTrick = new Epic("Эпик 2", "Научиться жонглировать");
-//
-//        tasksManager.addEpicToList(driverLicenseTask);
-//        tasksManager.addEpicToList(circusTrick);
-
-        System.out.println(tasksManager.getAllTasksList());
 
 
     }
