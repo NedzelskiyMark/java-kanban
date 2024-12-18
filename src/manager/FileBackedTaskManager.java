@@ -5,6 +5,7 @@ import model.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +87,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
                 }
             }
         } catch (IOException e) {
-            throw new ManagerSaveException("Произошла ошибка при чтении задач из файла");
+            throw new ManagerLoadException("Произошла ошибка при чтении задач из файла");
         }
 
         return linesOfTasks;
@@ -131,7 +132,9 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     public static Task fromString(String value) {
         String[] strArr = value.split(",");
         int id = Integer.parseInt(strArr[0]);
+        String taskType = strArr[1];
         String name = strArr[2];
+        String taskStatusString = strArr[3];
         String description = strArr[4];
         TaskStatus taskStatus = TaskStatus.NEW;
 
@@ -141,7 +144,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         }
 
 
-        switch (strArr[3]) {
+        switch (taskStatusString) {
             case "IN_PROGRESS":
                 taskStatus = TaskStatus.IN_PROGRESS;
                 break;
@@ -151,7 +154,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
 
         Task taskFromFile = null;
 
-        switch (strArr[1]) {
+        switch (taskType) {
             case "TASK":
                 taskFromFile = new Task(id, name, taskStatus, description);
                 break;
@@ -235,5 +238,59 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     @Override
     public void removeTaskFromHistoryList(int id) {
         super.removeTaskFromHistoryList(id);
+    }
+
+    public static void main(String[] args) {
+        /*
+         * Спасибо за ревью, надеюсь что фраза "интересно думаешь" не эвфемизм:)
+         * Решил все же сделать пользовательский сценарий, но не уверен что правильно понял его задание.
+         * Я создам менеджер задач, добавлю туда несколько разных задач, после чего сделаю еще один менеджер,
+         * как я понял, он должен увидеть созданный файл и подтянуть задачи из него себе в память.
+         * Надеюсь что в этом суть задания была
+         * */
+        Path pathToFile = Paths.get("tasks.csv");
+        FileBackedTaskManager firstTaskManager = FileBackedTaskManager.loadFromFile(pathToFile.toFile());
+
+        Task task = new Task("Task name", "Task description");
+        firstTaskManager.addTaskToList(task);
+
+        Epic epic = new Epic("Epic name", "Epic description");
+        firstTaskManager.addEpicToList(epic);
+
+        SubTask subtaskForEpic = new SubTask("Subtask name", "Subtask description");
+        epic.addSubTaskIdToEpic(subtaskForEpic);
+        firstTaskManager.addSubTaskToList(subtaskForEpic);
+
+        Epic epicSecond = new Epic("EpicSecond name", "EpicSecond description");
+        firstTaskManager.addEpicToList(epicSecond);
+
+        SubTask secondEpicSubtask1 = new SubTask("Subtask second name", "Subtask second description");
+        epicSecond.addSubTaskIdToEpic(secondEpicSubtask1);
+        firstTaskManager.addSubTaskToList(secondEpicSubtask1);
+
+        SubTask secondEpicSubtask2 = new SubTask("Second subtask second name", "Second subtask description");
+        epicSecond.addSubTaskIdToEpic(secondEpicSubtask2);
+        firstTaskManager.addSubTaskToList(secondEpicSubtask2);
+
+        Task task7 = new Task("Task 7 name", "Task 7 description");
+        firstTaskManager.addTaskToList(task7);
+
+        //Список задач из памяти первого менеджера
+        List<String> tasksListFromFirstManager = firstTaskManager.getListOfTasksFromMemory();
+        System.out.println(tasksListFromFirstManager);
+
+        //Создание второго менеджера и создание списка задач из него
+        FileBackedTaskManager secondTaskManager = FileBackedTaskManager.loadFromFile(pathToFile.toFile());
+        List<String> tasksListFromSecondManager = secondTaskManager.getListOfTasksFromMemory();
+        System.out.println(tasksListFromSecondManager);
+
+        //сравнение двух списков
+        System.out.println(tasksListFromFirstManager.equals(tasksListFromSecondManager));
+
+        try {
+            Files.deleteIfExists(pathToFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
