@@ -7,9 +7,8 @@ public class SubTask extends Task {
         super(name, description);
     }
 
-    @Override
-    public String toString() {
-        return "{id=" + getId() + ", name='" + getName() + "', description='" + getDescription() + "', status="
-                + getTaskStatus() + "', relatedEpic id=" + getRelationEpicId() + "}\n";
+    public SubTask(int id, String name, TaskStatus taskStatus, String description, int relationEpicId) {
+        super(id, name, taskStatus, description, relationEpicId);
     }
+
 }

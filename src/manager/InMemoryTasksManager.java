@@ -10,6 +10,12 @@ import java.util.List;
 
 
 public class InMemoryTasksManager implements TaskManager {
+    /*
+     * Долго думал над тем рефакторить ли код чтобы все задачи были в одной Мапе или оставить как есть,
+     * три разных Мапы под каждый вид задач, возможно дальше это будет удобней.. Решил пока что оставить три разных
+     * Мапы, и так задержался с решением, прошу подсказать, если лучше сделать одну общую Мапу на всех, тогда я
+     * это сделаю :)
+     * */
     private Map<Integer, Task> tasksList = new HashMap<>();
     private Map<Integer, Epic> epicsList = new HashMap<>();
     private Map<Integer, SubTask> subtasksList = new HashMap<>();
@@ -24,14 +30,17 @@ public class InMemoryTasksManager implements TaskManager {
     @Override
     public List<Task> getAllTasksList() {
         List<Task> allTasksList = new ArrayList<>();
-        allTasksList.addAll(tasksList.values());
+
+        for (Task task : tasksList.values()) {
+            allTasksList.add(task);
+        }
 
         //немного усложнил, хотел сделать чтобы в списке всех задач был порядок,
         // сначала добавляется эпик, затем его подзадачи, затем следующий эпик и т.д.
         for (Epic epic : epicsList.values()) {
             allTasksList.add(epic);
             int epicId = epic.getId();
-            ArrayList<SubTask> subtaskListForCopy = getAllSubtaskOfEpic(epicId);
+            List<SubTask> subtaskListForCopy = getAllSubtaskOfEpic(epicId);
             allTasksList.addAll(subtaskListForCopy);
         }
 
@@ -52,7 +61,7 @@ public class InMemoryTasksManager implements TaskManager {
         if (tasksList.containsKey(idToFind)) {
             foundTask = tasksList.get(idToFind);
             historyManager.add(foundTask);
-            return  foundTask;
+            return foundTask;
         }
 
         if (epicsList.containsKey(idToFind)) {
@@ -94,7 +103,7 @@ public class InMemoryTasksManager implements TaskManager {
                 updatedTask.setTaskStatus(TaskStatus.DONE);
         }
 
-        if (updatedTask.getClass().getName().equals("Model.SubTask")) {
+        if (updatedTask.getClass().getName().equals("model.SubTask")) {
             SubTask updatedTaskCopy = (SubTask) updatedTask;
             Epic relatedEpic = epicsList.get(updatedTaskCopy.getRelationEpicId());
             checkAndSetEpicStatus(relatedEpic.getId());//добавил метод, чтобы разгрузить действующий метод
@@ -146,7 +155,7 @@ public class InMemoryTasksManager implements TaskManager {
 
     @Override
     public void removeSubtasksOfEpic(int id) {
-        //создаю список, куда положу id подзадач для удаления, т.к. в foreach нельзя редактировать список, в цикле for
+        //Создаю список, куда положу id подзадач для удаления, т.к. В foreach нельзя редактировать список, в цикле for
         // возникала ошибка, этот способ показался оптимальным из всех что я придумал)
         ArrayList<Integer> idSubtasksToRemove = new ArrayList<>();
 
@@ -164,8 +173,8 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<SubTask> getAllSubtaskOfEpic(int id) {
-        ArrayList<SubTask> epicRelatedSubtasks = new ArrayList<>();
+    public List<SubTask> getAllSubtaskOfEpic(int id) {
+        List<SubTask> epicRelatedSubtasks = new ArrayList<>();
         for (SubTask subtask : subtasksList.values()) {
             if (subtask.getRelationEpicId() == id) {
                 epicRelatedSubtasks.add(subtask);

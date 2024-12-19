@@ -20,9 +20,16 @@ public class Task {
         this.description = description;
     }
 
-    public Task(String name, String description, int id) {
+    public Task(int id, String name, TaskStatus taskStatus, String description) {
         this(name, description);
         this.id = id;
+        this.taskStatus = taskStatus;
+
+    }
+
+    public Task(int id, String name, TaskStatus taskStatus, String description, int relationEpicId) {
+        this(id, name, taskStatus, description);
+        this.relationEpicId = relationEpicId;
     }
 
     public String getName() {
@@ -55,8 +62,31 @@ public class Task {
 
     @Override
     public String toString() {
-        return "{id=" + getId() + ", name='" + getName() + "', description='" + getDescription() + "', status="
-                + getTaskStatus() + "'}\n";
+        //Делаю строку для статуса задачи
+        TaskType taskType = TaskType.TASK;
+        switch (this.getClass().getSimpleName()) {
+            case "Epic":
+                taskType = TaskType.EPIC;
+                break;
+            case "SubTask":
+                taskType = TaskType.SUBTASK;
+        }
+
+        /*
+         * Связь с Эпиками есть только у Субтасков, делаю строку для них с id их Эпика,
+         *  для других задач делаю пустую строку
+         * */
+        int relationEpic = this.getRelationEpicId();
+        String relationEpicString;
+
+        if (relationEpic == 0) {
+            relationEpicString = "";
+        } else {
+            relationEpicString = Integer.toString(relationEpic);
+        }
+
+        return this.id + "," + taskType + "," + this.name + "," +
+                this.taskStatus + "," + this.description + "," + relationEpicString + "\n";
     }
 
     @Override
