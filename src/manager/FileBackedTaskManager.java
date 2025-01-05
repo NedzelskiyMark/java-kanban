@@ -16,7 +16,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         taskPath = file.toPath();
     }
 
-    public static FileBackedTaskManager loadFromFile(File file) {
+    public static FileBackedTaskManager getManager(File file) {
         FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
         if (file.exists()) {
             List<String> listOfLinesFromFile = getListOfStringFromFile(file);
@@ -115,7 +115,8 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     public void saveTasksToFileFromList(List<String> listOfTasks) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskPath.toFile(), true))) {
             for (String line : listOfTasks) {
-                writer.write(line + "\n");
+                //writer.write(line + "\n");
+                writer.write(line);
             }
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка при записи задачи из списка в файл");
@@ -136,13 +137,18 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         String name = strArr[2];
         String taskStatusString = strArr[3];
         String description = strArr[4];
-        TaskStatus taskStatus = TaskStatus.NEW;
+        int hours = Integer.parseInt(strArr[5]);
+        int minutes = Integer.parseInt(strArr[6]);
+        
+        
+
 
         int relationEpicId = 0;
-        if (strArr.length == 6) {
-            relationEpicId = Integer.parseInt(strArr[5]);
+        if (strArr.length == 8) {
+            relationEpicId = Integer.parseInt(strArr[7]);
         }
 
+        TaskStatus taskStatus = TaskStatus.NEW;
 
         switch (taskStatusString) {
             case "IN_PROGRESS":
@@ -156,13 +162,13 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
 
         switch (taskType) {
             case "TASK":
-                taskFromFile = new Task(id, name, taskStatus, description);
+                taskFromFile = new Task(id, name, taskStatus, description, hours, minutes);
                 break;
             case "EPIC":
-                taskFromFile = new Epic(id, name, taskStatus, description);
+                taskFromFile = new Epic(id, name, taskStatus, description, hours, minutes);
                 break;
             case "SUBTASK":
-                taskFromFile = new SubTask(id, name, taskStatus, description, relationEpicId);
+                taskFromFile = new SubTask(id, name, taskStatus, description, relationEpicId, hours, minutes);
         }
 
         return taskFromFile;
@@ -205,6 +211,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     public void addSubTaskToList(SubTask newSubtask) {
         super.addSubTaskToList(newSubtask);
         save(newSubtask);
+        updateFileToActualTasks(taskPath);
     }
 
     @Override
@@ -242,14 +249,12 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
 
     public static void main(String[] args) {
         /*
-         * Спасибо за ревью, надеюсь что фраза "интересно думаешь" не эвфемизм:)
-         * Решил все же сделать пользовательский сценарий, но не уверен что правильно понял его задание.
-         * Я создам менеджер задач, добавлю туда несколько разных задач, после чего сделаю еще один менеджер,
-         * как я понял, он должен увидеть созданный файл и подтянуть задачи из него себе в память.
-         * Надеюсь что в этом суть задания была
-         * */
+        * В данный момент реализуется такой подход, что в файле данные о продолжительности эпика не обновляются, то есть
+        * продолжительность записана как 0, но в оперативной памяти продолжительность эпика обновляется вместе
+        * с подзадачами.
+        * */
         Path pathToFile = Paths.get("tasks.csv");
-        FileBackedTaskManager firstTaskManager = FileBackedTaskManager.loadFromFile(pathToFile.toFile());
+        FileBackedTaskManager firstTaskManager = FileBackedTaskManager.getManager(pathToFile.toFile());
 
         Task task = new Task("Task name", "Task description");
         firstTaskManager.addTaskToList(task);
@@ -257,30 +262,34 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         Epic epic = new Epic("Epic name", "Epic description");
         firstTaskManager.addEpicToList(epic);
 
-        SubTask subtaskForEpic = new SubTask("Subtask name", "Subtask description");
+        SubTask subtaskForEpic = new SubTask("Subtask name", "Subtask description", 0, 45);
         epic.addSubTaskIdToEpic(subtaskForEpic);
         firstTaskManager.addSubTaskToList(subtaskForEpic);
 
         Epic epicSecond = new Epic("EpicSecond name", "EpicSecond description");
         firstTaskManager.addEpicToList(epicSecond);
 
-        SubTask secondEpicSubtask1 = new SubTask("Subtask second name", "Subtask second description");
+        SubTask secondEpicSubtask1 = new SubTask("Subtask second name", "Subtask second description", 0, 20);
         epicSecond.addSubTaskIdToEpic(secondEpicSubtask1);
         firstTaskManager.addSubTaskToList(secondEpicSubtask1);
 
-        SubTask secondEpicSubtask2 = new SubTask("Second subtask second name", "Second subtask description");
+        SubTask secondEpicSubtask2 = new SubTask("Second subtask second name", "Second subtask description", 0, 15);
         epicSecond.addSubTaskIdToEpic(secondEpicSubtask2);
         firstTaskManager.addSubTaskToList(secondEpicSubtask2);
 
-        Task task7 = new Task("Task 7 name", "Task 7 description");
+        Task task7 = new Task("Task 7 name", "Task 7 description", 2, 55);
         firstTaskManager.addTaskToList(task7);
+
+        firstTaskManager.updateTask(secondEpicSubtask1);
+        firstTaskManager.updateTask(secondEpicSubtask2);
+        firstTaskManager.updateTask(secondEpicSubtask2);
 
         //Список задач из памяти первого менеджера
         List<String> tasksListFromFirstManager = firstTaskManager.getListOfTasksFromMemory();
         System.out.println(tasksListFromFirstManager);
 
         //Создание второго менеджера и создание списка задач из него
-        FileBackedTaskManager secondTaskManager = FileBackedTaskManager.loadFromFile(pathToFile.toFile());
+        FileBackedTaskManager secondTaskManager = FileBackedTaskManager.getManager(pathToFile.toFile());
         List<String> tasksListFromSecondManager = secondTaskManager.getListOfTasksFromMemory();
         System.out.println(tasksListFromSecondManager);
 

@@ -107,6 +107,10 @@ public class InMemoryTasksManager implements TaskManager {
             SubTask updatedTaskCopy = (SubTask) updatedTask;
             Epic relatedEpic = epicsList.get(updatedTaskCopy.getRelationEpicId());
             checkAndSetEpicStatus(relatedEpic.getId());//добавил метод, чтобы разгрузить действующий метод
+
+            if (updatedTask.getTaskStatus() == TaskStatus.DONE) {
+                relatedEpic.minusDuration(updatedTaskCopy.getDuration());
+            }
         }
     }
 

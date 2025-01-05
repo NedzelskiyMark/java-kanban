@@ -4,28 +4,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends Task {
-    private List<Integer> subTasks = new ArrayList<>();
+    private List<SubTask> subTasks = new ArrayList<>();
 
     public Epic(String name, String description) {
         super(name, description);
     }
 
-    public Epic(int id, String name, TaskStatus taskStatus, String description) {
-        super(id, name, taskStatus, description);
+    public Epic(int id, String name, TaskStatus taskStatus, String description, int hours, int minutes) {
+        super(id, name, taskStatus, description, hours, minutes);
     }
 
-    public List<Integer> getSubTasks() {
+    public List<SubTask> getSubTasks() {
         return subTasks;
     }
 
     public int addSubTaskIdToEpic(Task task) {
-        if (task.getId().equals(this.getId())) {
+        if (task.getId().equals(this.getId()) || task.getClass().getSimpleName().equals("Epic")) {
             return -1;
         }
-        this.subTasks.add(task.getId());
+        SubTask taskToAdd = (SubTask) task;
+        this.subTasks.add(taskToAdd);
         task.setRelationEpicId(this);
-
+        plusDuration(taskToAdd);
         return 1;
     }
+
+
 }
 

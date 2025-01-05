@@ -19,7 +19,7 @@ class InMemoryTasksManagerTest {
     public static void prepare() {
         Task newTask = new Task("Task name", "Task description");
         Epic newEpic = new Epic("Epic name", "Epic description");
-        SubTask newSubtask = new SubTask("Subtask name", "Subtask description");
+        SubTask newSubtask = new SubTask("Subtask name", "Subtask description", 1, 0);
         newEpic.addSubTaskIdToEpic(newSubtask);
         rightIds.add(newTask.getId());
         rightIds.add(newEpic.getId());

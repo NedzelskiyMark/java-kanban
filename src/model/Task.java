@@ -1,9 +1,7 @@
 package model;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Objects;
 
 //
@@ -18,6 +16,15 @@ public class Task {
     private LocalDateTime endTime;
 
     private int relationEpicId;
+
+    public Task(String name, String description) {
+        count++;
+        id = count;
+        this.taskStatus = TaskStatus.NEW;
+        this.name = name;
+        this.description = description;
+        this.duration = Duration.ofHours(0).plusMinutes(0);
+    }
 
     public Task(String name, String description, int hours, int minutes) {
         count++;
@@ -81,6 +88,16 @@ public class Task {
                 taskType = TaskType.SUBTASK;
         }
 
+//        if (duration == null) {
+//            durationHours = "";
+//            durationMinutes = "";
+//        } else {
+//            durationHours = String.valueOf(duration.toHours());
+//            durationMinutes = String.valueOf(duration.toMinutesPart());
+//        }
+        String durationHours = String.valueOf(this.duration.toHours());
+        String durationMinutes = String.valueOf(this.duration.toMinutesPart());
+
         /*
          * Связь с Эпиками есть только у Субтасков, делаю строку для них с id их Эпика,
          *  для других задач делаю пустую строку
@@ -95,7 +112,8 @@ public class Task {
         }
 
         return this.id + "," + taskType + "," + this.name + "," +
-                this.taskStatus + "," + this.description + "," + relationEpicString + "\n";
+                this.taskStatus + "," + this.description + "," + durationHours + "," +
+                durationMinutes + "," +  relationEpicString + "\n";
     }
 
     @Override
@@ -140,11 +158,19 @@ public class Task {
         setEndTime();
     }
 
-    public void setEndTime() {
+    private void setEndTime() {
         endTime = startTime.plus(duration);
     }
 
     public LocalDateTime getEndTime() {
         return endTime;
+    }
+
+    public void plusDuration(SubTask task) {
+        duration = duration.plus(task.getDuration());
+    }
+
+    public void minusDuration(Duration durationToMinus) {
+        duration = duration.minus(durationToMinus);
     }
 }
