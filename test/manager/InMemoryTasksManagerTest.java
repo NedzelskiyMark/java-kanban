@@ -6,6 +6,7 @@ import model.Task;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,17 +54,41 @@ class InMemoryTasksManagerTest {
         assertEquals("Subtask name", findedSubtask.getName());
     }
 
-//    @Test
-//    public void taskNotChangedAfterAddingInManager() {
-//        Task newTask = new Task("Task name", "Task description", 555);
-//
-//        tasksManager.addTaskToList(newTask);
-//
-//        Task findedTask = tasksManager.getTaskById(555);
-//
-//        assertEquals(newTask.getId(), findedTask.getId());
-//        assertEquals(newTask.getName(), findedTask.getName());
-//        assertEquals(newTask.getDescription(), findedTask.getDescription());
-//        assertEquals(newTask.getTaskStatus(), findedTask.getTaskStatus());
-//    }
+    @Test
+    public void taskNotChangedAfterAddingInManager() {
+        Task newTask = new Task("Task name", "Task description");
+
+        tasksManager.addTaskToList(newTask);
+        Integer rightTaskId = newTask.getId();
+
+        Task findedTask = tasksManager.getTaskById(rightTaskId);
+
+        assertEquals(newTask.getId(), findedTask.getId());
+        assertEquals(newTask.getName(), findedTask.getName());
+        assertEquals(newTask.getDescription(), findedTask.getDescription());
+        assertEquals(newTask.getTaskStatus(), findedTask.getTaskStatus());
+    }
+
+    @Test
+    public void prioritizedTasksInRightOrder() {
+        Task newTask = new Task("Test", "first", 0, 15);
+        Task newTask2 = new Task("Test", "last", 0, 15);
+        SubTask newSubtask = new SubTask("test", "middle", 0, 15);
+
+        tasksManager.addTaskToList(newTask);
+        tasksManager.addTaskToList(newTask2);
+        tasksManager.addSubTaskToList(newSubtask);
+
+        Integer rightIdTask1 = newTask.getId();
+        Integer rightIdTask2 = newTask2.getId();
+        Integer rightIdSubtask = newSubtask.getId();
+
+        tasksManager.setStartTimeToTask(newTask, LocalDateTime.of(2025, 01, 05, 12, 0));
+        tasksManager.setStartTimeToTask(newTask2, LocalDateTime.of(2025, 01, 05, 12, 2));
+        tasksManager.setStartTimeToTask(newSubtask, LocalDateTime.of(2025, 01, 05, 12, 1));
+
+        System.out.println(tasksManager.getPrioritizedTasks());
+
+
+    }
 }

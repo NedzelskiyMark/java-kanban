@@ -19,7 +19,8 @@ class TaskTest {
 
     @Test
     void testEndTimeCalculating() {
-        task2.setStartTime(2025, 1,5,12,00);
+        LocalDateTime time = LocalDateTime.of(2025, 1,5,12,0);
+        task2.setStartTime(time);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm");
         String endTimeString = task2.getEndTime().format(formatter);
 

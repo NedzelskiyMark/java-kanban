@@ -2,6 +2,8 @@ package model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.Objects;
 
 //
@@ -15,7 +17,7 @@ public class Task {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    private int relationEpicId;
+    private int relationEpicId = 0;
 
     public Task(String name, String description) {
         count++;
@@ -35,17 +37,27 @@ public class Task {
         duration = Duration.ofHours(hours).plusMinutes(minutes);
     }
 
-    public Task(int id, String name, TaskStatus taskStatus, String description,
+    public Task(int id, String name, String description, TaskStatus taskStatus,
                 int hours, int minutes) {
         this(name, description, hours, minutes);
         this.id = id;
         this.taskStatus = taskStatus;
     }
 
-    public Task(int id, String name, TaskStatus taskStatus, String description,
+    public Task(int id, String name, String description, TaskStatus taskStatus,
                 int relationEpicId, int hours, int minutes) {
-        this(id, name, taskStatus, description, hours, minutes);
+//        this(id, name, description, taskStatus, hours, minutes);
+        this(name, description, hours, minutes);
+        this.id = id;
+        this.taskStatus = taskStatus;
         this.relationEpicId = relationEpicId;
+    }
+
+    public Task(int id, String name, String description, TaskStatus taskStatus,
+                int relationEpicId, int hours, int minutes, LocalDateTime startTime) {
+        this(id, name, description, taskStatus,  relationEpicId, hours, minutes);
+        this.startTime = startTime;
+        setEndTime();
     }
 
     public String getName() {
@@ -88,32 +100,21 @@ public class Task {
                 taskType = TaskType.SUBTASK;
         }
 
-//        if (duration == null) {
-//            durationHours = "";
-//            durationMinutes = "";
-//        } else {
-//            durationHours = String.valueOf(duration.toHours());
-//            durationMinutes = String.valueOf(duration.toMinutesPart());
-//        }
+        String relationEpicString = Integer.toString(this.getRelationEpicId());
+
         String durationHours = String.valueOf(this.duration.toHours());
         String durationMinutes = String.valueOf(this.duration.toMinutesPart());
 
-        /*
-         * Связь с Эпиками есть только у Субтасков, делаю строку для них с id их Эпика,
-         *  для других задач делаю пустую строку
-         * */
-        int relationEpic = this.getRelationEpicId();
-        String relationEpicString;
-
-        if (relationEpic == 0) {
-            relationEpicString = "";
+        String startTimeString;
+        if (startTime == null) {
+            startTimeString = "null";
         } else {
-            relationEpicString = Integer.toString(relationEpic);
+            startTimeString = startTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
         }
 
         return this.id + "," + taskType + "," + this.name + "," +
-                this.taskStatus + "," + this.description + "," + durationHours + "," +
-                durationMinutes + "," +  relationEpicString + "\n";
+                this.taskStatus + "," + this.description + "," + relationEpicString + "," + durationHours + "," +
+                durationMinutes + "," + startTimeString + "\n";
     }
 
     @Override
@@ -153,8 +154,8 @@ public class Task {
         return startTime;
     }
 
-    public void setStartTime(int year, int month, int day, int hour, int minutes) {
-        startTime = LocalDateTime.of(year, month, day, hour, minutes);
+    public void setStartTime(LocalDateTime startTimeToSet) {
+        startTime = startTimeToSet;
         setEndTime();
     }
 
@@ -174,3 +175,4 @@ public class Task {
         duration = duration.minus(durationToMinus);
     }
 }
+

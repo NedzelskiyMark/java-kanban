@@ -2,27 +2,23 @@ package manager;
 
 import model.*;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class InMemoryTasksManager implements TaskManager {
-    /*
-     * Долго думал над тем рефакторить ли код чтобы все задачи были в одной Мапе или оставить как есть,
-     * три разных Мапы под каждый вид задач, возможно дальше это будет удобней.. Решил пока что оставить три разных
-     * Мапы, и так задержался с решением, прошу подсказать, если лучше сделать одну общую Мапу на всех, тогда я
-     * это сделаю :)
-     * */
     private Map<Integer, Task> tasksList = new HashMap<>();
     private Map<Integer, Epic> epicsList = new HashMap<>();
     private Map<Integer, SubTask> subtasksList = new HashMap<>();
 
-    //Список занятых id, чтобы нельзя было назначить уже используемый id,
-    //использую String чтобы можно было удалять элемент по значению
     private Collection<String> idInUse = new ArrayList<>();
+    /*
+    Я решил что не буду добавлять в приоритизированные задачи Эпики, т.к. они сам по себе являются
+    * "абстрактными", а в списке оставить именно те задачи, которые надо непосредственно выполнять. Если это не
+    правильный подход, я его изменю:)
+    */
+    private TreeSet<Task> prioritizedTasks = new TreeSet<>(new TaskComparatorByStartTime());
 
     private HistoryManager historyManager = Managers.getDefaultHistory();
 
@@ -31,18 +27,16 @@ public class InMemoryTasksManager implements TaskManager {
     public List<Task> getAllTasksList() {
         List<Task> allTasksList = new ArrayList<>();
 
-        for (Task task : tasksList.values()) {
-            allTasksList.add(task);
-        }
+        tasksList.values().stream().forEach(allTasksList::add);
+
 
         //немного усложнил, хотел сделать чтобы в списке всех задач был порядок,
         // сначала добавляется эпик, затем его подзадачи, затем следующий эпик и т.д.
-        for (Epic epic : epicsList.values()) {
-            allTasksList.add(epic);
-            int epicId = epic.getId();
-            List<SubTask> subtaskListForCopy = getAllSubtaskOfEpic(epicId);
-            allTasksList.addAll(subtaskListForCopy);
-        }
+
+        epicsList.values().stream()
+                .forEach(task -> { allTasksList.add(task);
+                getAllSubtaskOfEpic(task.getId()).stream().forEach(allTasksList::add);
+                });
 
         return allTasksList;
     }
@@ -79,6 +73,7 @@ public class InMemoryTasksManager implements TaskManager {
     public void addTaskToList(Task newTask) {
         tasksList.put(newTask.getId(), newTask);
         idInUse.add(String.valueOf(newTask.getId()));
+        addPrioritizedTask(newTask);
     }
 
     @Override
@@ -91,6 +86,7 @@ public class InMemoryTasksManager implements TaskManager {
     public void addSubTaskToList(SubTask newSubtask) {
         subtasksList.put(newSubtask.getId(), newSubtask);
         idInUse.add(String.valueOf(newSubtask.getId()));
+        addPrioritizedTask(newSubtask);
     }
 
     @Override
@@ -197,5 +193,55 @@ public class InMemoryTasksManager implements TaskManager {
     @Override
     public void removeTaskFromHistoryList(int id) {
         historyManager.remove(id);
+    }
+
+    private void addPrioritizedTask(Task task) {
+        Optional<LocalDateTime> startTimeOfTask = Optional.ofNullable(task.getStartTime());
+
+        if (startTimeOfTask.isPresent()) {
+            prioritizedTasks.add(task);
+        }
+    }
+
+    private boolean checkTasksTimeIntersections(LocalDateTime startTime) {
+        TreeSet<Task> prioritizedTasks = getPrioritizedTasks();
+
+        List<Task> filteredByPresenceIntersections = prioritizedTasks.stream()
+                .filter(task -> (task.getStartTime().isEqual(startTime) ||
+                        task.getStartTime().isBefore(startTime) && task.getEndTime().isAfter(startTime)))
+                .toList();
+
+        return filteredByPresenceIntersections.isEmpty();
+    }
+
+    public TreeSet<Task> getPrioritizedTasks() {
+        return prioritizedTasks;
+    }
+
+    public void setStartTimeToTask(Task task,LocalDateTime startTime) throws IllegalStartTimeException {
+        boolean isStartTimeAccepted = checkTasksTimeIntersections(startTime);
+
+        if (!isStartTimeAccepted) {
+            throw new IllegalStartTimeException("Стартовое время не подходит, пересечение с другой задачей");
+        }
+
+         task.setStartTime(startTime);
+         addPrioritizedTask(task);
+    }
+}
+
+class TaskComparatorByStartTime implements Comparator<Task> {
+    @Override
+    public int compare(Task t1, Task t2) {
+        LocalDateTime startTime1 = t1.getStartTime();
+        LocalDateTime startTime2 = t2.getStartTime();
+
+        if (startTime1.isBefore(startTime2)) {
+            return -1;
+        } else if (startTime1.isAfter(startTime2)) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 }

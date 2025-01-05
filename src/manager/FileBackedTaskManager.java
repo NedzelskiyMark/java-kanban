@@ -6,6 +6,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +49,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskPath.toFile()))) {
-            writer.write("id,type,name,status,description,epic\n");
+            writer.write("id,type,name,taskStatus,description,relatedEpic,durationHours,durationMinutes,startTime\n");
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка при записи в файл");
         }
@@ -137,16 +139,11 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         String name = strArr[2];
         String taskStatusString = strArr[3];
         String description = strArr[4];
-        int hours = Integer.parseInt(strArr[5]);
-        int minutes = Integer.parseInt(strArr[6]);
-        
-        
+        int relationEpicId = Integer.parseInt(strArr[5]);
+        int hours = Integer.parseInt(strArr[6]);
+        int minutes = Integer.parseInt(strArr[7]);
+        String startTime = strArr[8];
 
-
-        int relationEpicId = 0;
-        if (strArr.length == 8) {
-            relationEpicId = Integer.parseInt(strArr[7]);
-        }
 
         TaskStatus taskStatus = TaskStatus.NEW;
 
@@ -159,17 +156,32 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         }
 
         Task taskFromFile = null;
-
-        switch (taskType) {
-            case "TASK":
-                taskFromFile = new Task(id, name, taskStatus, description, hours, minutes);
-                break;
-            case "EPIC":
-                taskFromFile = new Epic(id, name, taskStatus, description, hours, minutes);
-                break;
-            case "SUBTASK":
-                taskFromFile = new SubTask(id, name, taskStatus, description, relationEpicId, hours, minutes);
+         if (startTime.equals("null")) {
+             switch (taskType) {
+                 case "TASK":
+                     taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes);
+                     break;
+                 case "EPIC":
+                     taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
+                     break;
+                 case "SUBTASK":
+                     taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes);
+             }
+         } else {
+             LocalDateTime startTimeParsed = LocalDateTime.parse(startTime,
+                     DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+             switch (taskType) {
+                 case "TASK":
+                     taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes, startTimeParsed);
+                     break;
+                 case "EPIC":
+                     taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
+                     break;
+                 case "SUBTASK":
+                     taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes, startTimeParsed);
+             }
         }
+
 
         return taskFromFile;
 
@@ -256,7 +268,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         Path pathToFile = Paths.get("tasks.csv");
         FileBackedTaskManager firstTaskManager = FileBackedTaskManager.getManager(pathToFile.toFile());
 
-        Task task = new Task("Task name", "Task description");
+        Task task = new Task("Task name", "Task description", 1,15);
         firstTaskManager.addTaskToList(task);
 
         Epic epic = new Epic("Epic name", "Epic description");
@@ -279,6 +291,17 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
 
         Task task7 = new Task("Task 7 name", "Task 7 description", 2, 55);
         firstTaskManager.addTaskToList(task7);
+        try {
+            firstTaskManager.setStartTimeToTask(task7, LocalDateTime.of(2025,1,5,12,0));
+        } catch (IllegalStartTimeException e) {
+            System.out.println(e.getMessage());
+        }
+        //Должен пойматься exception
+        try {
+            firstTaskManager.setStartTimeToTask(secondEpicSubtask2, LocalDateTime.of(2025,1,5,12,30));
+        } catch (IllegalStartTimeException e) {
+            System.out.println(e.getMessage());
+        }
 
         firstTaskManager.updateTask(secondEpicSubtask1);
         firstTaskManager.updateTask(secondEpicSubtask2);

@@ -1,10 +1,13 @@
 package manager;
 
 import model.Epic;
+import model.IllegalStartTimeException;
 import model.SubTask;
 import model.Task;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.TreeSet;
 
 public interface TaskManager {
     List<Task> getAllTasksList();
@@ -32,4 +35,8 @@ public interface TaskManager {
     List<Task> getHistory();
 
     void removeTaskFromHistoryList(int id);
+
+    void setStartTimeToTask(Task task, LocalDateTime startTime) throws IllegalStartTimeException;
+
+    TreeSet<Task> getPrioritizedTasks();
 }
