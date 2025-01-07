@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TaskTest {
     Task task1 = new Task("Task name", "Task description");
-    Task task2 = new Task("Task name", "Task description",1, 15);
+    Task task2 = new Task("Task name", "Task description", 1, 15);
 
 
     @Test
@@ -19,7 +19,7 @@ class TaskTest {
 
     @Test
     void testEndTimeCalculating() {
-        LocalDateTime time = LocalDateTime.of(2025, 1,5,12,0);
+        LocalDateTime time = LocalDateTime.of(2025, 1, 5, 12, 0);
         task2.setStartTime(time);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm");
         String endTimeString = task2.getEndTime().format(formatter);

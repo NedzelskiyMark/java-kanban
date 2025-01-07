@@ -3,7 +3,6 @@ package model;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.Objects;
 
 //
@@ -55,7 +54,7 @@ public class Task {
 
     public Task(int id, String name, String description, TaskStatus taskStatus,
                 int relationEpicId, int hours, int minutes, LocalDateTime startTime) {
-        this(id, name, description, taskStatus,  relationEpicId, hours, minutes);
+        this(id, name, description, taskStatus, relationEpicId, hours, minutes);
         this.startTime = startTime;
         setEndTime();
     }

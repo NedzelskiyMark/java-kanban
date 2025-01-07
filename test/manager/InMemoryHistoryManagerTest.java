@@ -125,4 +125,76 @@ class InMemoryHistoryManagerTest {
 
         assertEquals(expectedSize, historyManager.getHistory().size());
     }
+
+    // Новые тесты спринта 8
+
+    @Test
+    public void methodsAddAndGetHistoryTest() {
+        List<Task> tasksList = historyManager.getHistory();
+        assertEquals(0, tasksList.size());
+
+        historyManager.add(testTasksList.get(0));
+        tasksList = historyManager.getHistory();
+        assertEquals(1, tasksList.size());
+        //duplication test
+        historyManager.add(testTasksList.get(0));
+        tasksList = historyManager.getHistory();
+        assertEquals(1, tasksList.size());
+
+        historyManager.add(testTasksList.get(1));
+        tasksList = historyManager.getHistory();
+        assertEquals(2, tasksList.size());
+
+        //order in history check
+        historyManager.add(testTasksList.get(2));
+        historyManager.add(testTasksList.get(3));
+        historyManager.add(testTasksList.get(0));
+
+        List<Task> expectedList = List.of(testTasksList.get(1), testTasksList.get(2),
+                testTasksList.get(3), testTasksList.get(0));
+
+        assertEquals(expectedList, historyManager.getHistory());
+
+        historyManager.add(testTasksList.get(2));
+
+        expectedList = List.of(testTasksList.get(1), testTasksList.get(3),
+                testTasksList.get(0), testTasksList.get(2));
+
+        assertEquals(expectedList, historyManager.getHistory());
+
+
+    }
+
+    @Test
+    public void methodsRemoveAndClearHistoryTest() {
+        historyManager.add(testTasksList.get(0));
+        historyManager.add(testTasksList.get(1));
+        historyManager.add(testTasksList.get(2));
+        historyManager.add(testTasksList.get(3));
+        historyManager.add(testTasksList.get(4));
+        //remove from beginning of history
+        historyManager.remove(testTasksList.get(0).getId());
+
+        List<Task> expectedList = List.of(testTasksList.get(1), testTasksList.get(2),
+                testTasksList.get(3), testTasksList.get(4));
+
+        assertEquals(expectedList, historyManager.getHistory());
+        //remove from middle of history
+        historyManager.remove(testTasksList.get(3).getId());
+
+        expectedList = List.of(testTasksList.get(1), testTasksList.get(2), testTasksList.get(4));
+
+        assertEquals(expectedList, historyManager.getHistory());
+        //remove from end of history
+        historyManager.remove(testTasksList.get(4).getId());
+
+        expectedList = List.of(testTasksList.get(1), testTasksList.get(2));
+
+        assertEquals(expectedList, historyManager.getHistory());
+        //clear history
+        historyManager.clearHistoryList();
+
+
+        assertEquals(0, historyManager.getHistory().size());
+    }
 }

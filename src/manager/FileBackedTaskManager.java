@@ -23,16 +23,17 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         if (file.exists()) {
             List<String> listOfLinesFromFile = getListOfStringFromFile(file);
 
-            for (String line : listOfLinesFromFile) {
-                Task task = fromString(line);
-                if (task.getClass().getSimpleName().equals("Task")) {
-                    taskManager.addTaskToList(task);
-                } else if (task.getClass().getSimpleName().equals("Epic")) {
-                    taskManager.addEpicToList((Epic) task);
-                } else if (task.getClass().getSimpleName().equals("SubTask")) {
-                    taskManager.addSubTaskToList((SubTask) task);
-                }
-            }
+            listOfLinesFromFile.stream()
+                    .forEach(line -> {
+                        Task task = fromString(line);
+                        if (task.getClass().getSimpleName().equals("Task")) {
+                            taskManager.addTaskToList(task);
+                        } else if (task.getClass().getSimpleName().equals("Epic")) {
+                            taskManager.addEpicToList((Epic) task);
+                        } else if (task.getClass().getSimpleName().equals("SubTask")) {
+                            taskManager.addSubTaskToList((SubTask) task);
+                        }
+                    });
         } else {
             createNewFile(file.toPath());
         }
@@ -68,10 +69,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         List<Task> listOfTasksToReturn = new ArrayList<>();
         List<String> linesOfTasks = getListOfStringFromFile(file);
 
-        for (String line : linesOfTasks) {
-            Task taskFromFile = fromString(line);
-            listOfTasksToReturn.add(taskFromFile);
-        }
+        linesOfTasks.stream().forEach(line -> listOfTasksToReturn.add(fromString(line)));
 
         return listOfTasksToReturn;
     }
@@ -107,19 +105,22 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         List<Task> listOfTasks = super.getAllTasksList();
         List<String> listOsStringTasks = new ArrayList<>();
 
-        for (Task task : listOfTasks) {
-            listOsStringTasks.add(task.toString());
-        }
+        listOfTasks.stream().forEach(task -> listOsStringTasks.add(task.toString()));
 
         return listOsStringTasks;
     }
 
     public void saveTasksToFileFromList(List<String> listOfTasks) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskPath.toFile(), true))) {
-            for (String line : listOfTasks) {
-                //writer.write(line + "\n");
-                writer.write(line);
-            }
+//По заданию надо поменять все циклы for на стримы, но здесь из-за того что приходится добавлять блок try-catch
+// страдает читаемость кода. Мне кажется правильным было бы оставить цикл for ради читаемости или лучше стрим?
+            listOfTasks.stream().forEach(line -> {
+                try {
+                    writer.write(line);
+                } catch (IOException e) {
+                    throw new ManagerSaveException("Произошла ошибка при записи задачи из списка в файл");
+                }
+            });
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка при записи задачи из списка в файл");
         }
@@ -156,30 +157,30 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         }
 
         Task taskFromFile = null;
-         if (startTime.equals("null")) {
-             switch (taskType) {
-                 case "TASK":
-                     taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes);
-                     break;
-                 case "EPIC":
-                     taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
-                     break;
-                 case "SUBTASK":
-                     taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes);
-             }
-         } else {
-             LocalDateTime startTimeParsed = LocalDateTime.parse(startTime,
-                     DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
-             switch (taskType) {
-                 case "TASK":
-                     taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes, startTimeParsed);
-                     break;
-                 case "EPIC":
-                     taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
-                     break;
-                 case "SUBTASK":
-                     taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes, startTimeParsed);
-             }
+        if (startTime.equals("null")) {
+            switch (taskType) {
+                case "TASK":
+                    taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes);
+                    break;
+                case "EPIC":
+                    taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
+                    break;
+                case "SUBTASK":
+                    taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes);
+            }
+        } else {
+            LocalDateTime startTimeParsed = LocalDateTime.parse(startTime,
+                    DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+            switch (taskType) {
+                case "TASK":
+                    taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes, startTimeParsed);
+                    break;
+                case "EPIC":
+                    taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
+                    break;
+                case "SUBTASK":
+                    taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes, startTimeParsed);
+            }
         }
 
 
@@ -260,15 +261,10 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     }
 
     public static void main(String[] args) {
-        /*
-        * В данный момент реализуется такой подход, что в файле данные о продолжительности эпика не обновляются, то есть
-        * продолжительность записана как 0, но в оперативной памяти продолжительность эпика обновляется вместе
-        * с подзадачами.
-        * */
         Path pathToFile = Paths.get("tasks.csv");
         FileBackedTaskManager firstTaskManager = FileBackedTaskManager.getManager(pathToFile.toFile());
 
-        Task task = new Task("Task name", "Task description", 1,15);
+        Task task = new Task("Task name", "Task description", 1, 15);
         firstTaskManager.addTaskToList(task);
 
         Epic epic = new Epic("Epic name", "Epic description");
@@ -292,13 +288,13 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         Task task7 = new Task("Task 7 name", "Task 7 description", 2, 55);
         firstTaskManager.addTaskToList(task7);
         try {
-            firstTaskManager.setStartTimeToTask(task7, LocalDateTime.of(2025,1,5,12,0));
+            firstTaskManager.setStartTimeToTask(task7, LocalDateTime.of(2025, 1, 5, 12, 0));
         } catch (IllegalStartTimeException e) {
             System.out.println(e.getMessage());
         }
         //Должен пойматься exception
         try {
-            firstTaskManager.setStartTimeToTask(secondEpicSubtask2, LocalDateTime.of(2025,1,5,12,30));
+            firstTaskManager.setStartTimeToTask(secondEpicSubtask2, LocalDateTime.of(2025, 1, 5, 12, 30));
         } catch (IllegalStartTimeException e) {
             System.out.println(e.getMessage());
         }

@@ -4,7 +4,6 @@ import model.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 public class InMemoryTasksManager implements TaskManager {
@@ -34,8 +33,9 @@ public class InMemoryTasksManager implements TaskManager {
         // сначала добавляется эпик, затем его подзадачи, затем следующий эпик и т.д.
 
         epicsList.values().stream()
-                .forEach(task -> { allTasksList.add(task);
-                getAllSubtaskOfEpic(task.getId()).stream().forEach(allTasksList::add);
+                .forEach(task -> {
+                    allTasksList.add(task);
+                    getAllSubtaskOfEpic(task.getId()).stream().forEach(allTasksList::add);
                 });
 
         return allTasksList;
@@ -47,6 +47,7 @@ public class InMemoryTasksManager implements TaskManager {
         epicsList.clear();
         subtasksList.clear();
         historyManager.clearHistoryList();
+        prioritizedTasks.clear();
     }
 
     @Override
@@ -73,7 +74,7 @@ public class InMemoryTasksManager implements TaskManager {
     public void addTaskToList(Task newTask) {
         tasksList.put(newTask.getId(), newTask);
         idInUse.add(String.valueOf(newTask.getId()));
-        addPrioritizedTask(newTask);
+        addTaskToPrioritizedList(newTask);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class InMemoryTasksManager implements TaskManager {
     public void addSubTaskToList(SubTask newSubtask) {
         subtasksList.put(newSubtask.getId(), newSubtask);
         idInUse.add(String.valueOf(newSubtask.getId()));
-        addPrioritizedTask(newSubtask);
+        addTaskToPrioritizedList(newSubtask);
     }
 
     @Override
@@ -112,19 +113,14 @@ public class InMemoryTasksManager implements TaskManager {
 
     @Override
     public void checkAndSetEpicStatus(int epicId) {
-        boolean isAllSubtasksDone = true;
+        List<SubTask> subtasksWithStatusNotDone = subtasksList.values().stream()
+                .filter(subtask -> subtask.getRelationEpicId() == epicId &&
+                        (subtask.getTaskStatus().equals(TaskStatus.NEW) ||
+                                subtask.getTaskStatus().equals(TaskStatus.IN_PROGRESS)))
+                .toList();
 
-        for (SubTask subtask : subtasksList.values()) {
-            if (subtask.getRelationEpicId() == epicId) {
-                if (subtask.getTaskStatus().equals(TaskStatus.NEW) ||
-                        subtask.getTaskStatus().equals(TaskStatus.IN_PROGRESS)) {
-                    isAllSubtasksDone = false;
-                    break;
-                }
-            }
-        }
-        //if all SubTasks is DONE, Model.Epic is DONE, else Model.Epic IN_PROGRESS because this method use only when
-        // Model.SubTask status is updated
+        boolean isAllSubtasksDone = subtasksWithStatusNotDone.isEmpty();
+
         if (isAllSubtasksDone) {
             epicsList.get(epicId).setTaskStatus(TaskStatus.DONE);
         } else {
@@ -134,6 +130,8 @@ public class InMemoryTasksManager implements TaskManager {
 
     @Override
     public void deleteById(int idToRemove) {
+        prioritizedTasks.remove(getTaskById(idToRemove));
+
         if (tasksList.containsKey(idToRemove)) {
             tasksList.remove(idToRemove);
             idInUse.remove(String.valueOf(idToRemove));
@@ -150,38 +148,24 @@ public class InMemoryTasksManager implements TaskManager {
             removeSubtasksOfEpic(idToRemove);//добавил метод, чтобы разгрузить действующий метод
         }
 
+
         removeTaskFromHistoryList(idToRemove);
     }
 
     @Override
     public void removeSubtasksOfEpic(int id) {
-        //Создаю список, куда положу id подзадач для удаления, т.к. В foreach нельзя редактировать список, в цикле for
-        // возникала ошибка, этот способ показался оптимальным из всех что я придумал)
-        ArrayList<Integer> idSubtasksToRemove = new ArrayList<>();
+        List<SubTask> idSubtasksToRemove = subtasksList.values().stream()
+                .filter(subTask -> subTask.getRelationEpicId() == id)
+                .toList();
 
-        for (SubTask subtaskToCheck : subtasksList.values()) {
-            if (subtaskToCheck.getRelationEpicId() == id) {
-                idSubtasksToRemove.add(subtaskToCheck.getId());
-            }
-        }
-
-        for (Integer idToRemove : idSubtasksToRemove) {
-            subtasksList.remove(idToRemove);
-            idInUse.remove(String.valueOf(idToRemove));
-            removeTaskFromHistoryList(idToRemove);
-        }
+        idSubtasksToRemove.stream().forEach(subTask -> subtasksList.remove(subTask.getId()));
     }
 
     @Override
     public List<SubTask> getAllSubtaskOfEpic(int id) {
-        List<SubTask> epicRelatedSubtasks = new ArrayList<>();
-        for (SubTask subtask : subtasksList.values()) {
-            if (subtask.getRelationEpicId() == id) {
-                epicRelatedSubtasks.add(subtask);
-            }
-        }
-
-        return epicRelatedSubtasks;
+        return subtasksList.values().stream()
+                .filter(subTask -> subTask.getRelationEpicId() == id)
+                .toList();
     }
 
     @Override
@@ -195,7 +179,20 @@ public class InMemoryTasksManager implements TaskManager {
         historyManager.remove(id);
     }
 
-    private void addPrioritizedTask(Task task) {
+    public void setStartTimeToTask(Task task, LocalDateTime startTime) throws IllegalStartTimeException {
+        LocalDateTime endTime = startTime.plus(task.getDuration());
+        boolean isStartTimeAccepted = checkTasksTimeIntersections(startTime, endTime);
+
+        if (!isStartTimeAccepted) {
+            throw new IllegalStartTimeException("Стартовое время не подходит, пересечение с другой задачей");
+        }
+
+        task.setStartTime(startTime);
+        prioritizedTasks.remove(task);
+        addTaskToPrioritizedList(task);
+    }
+
+    private void addTaskToPrioritizedList(Task task) {
         Optional<LocalDateTime> startTimeOfTask = Optional.ofNullable(task.getStartTime());
 
         if (startTimeOfTask.isPresent()) {
@@ -203,31 +200,31 @@ public class InMemoryTasksManager implements TaskManager {
         }
     }
 
-    private boolean checkTasksTimeIntersections(LocalDateTime startTime) {
-        TreeSet<Task> prioritizedTasks = getPrioritizedTasks();
+    //метод проверяет пересечения как по стартовому времени так и по времени окончания задания, стрим фильтрует
+    //приоритизированный список, оставляя только задачи, где есть пересечения, и возвращает булево значение пустой ли
+    //выходит список после фильтрации
+    private boolean checkTasksTimeIntersections(LocalDateTime startToVerify, LocalDateTime endToVerify) {
+        List<Task> filteredByIntersectionPresence = prioritizedTasks.stream()
+                .filter(task ->
+                {
+                    LocalDateTime taskStartTime = task.getStartTime();
+                    LocalDateTime taskEndTime = task.getEndTime();
 
-        List<Task> filteredByPresenceIntersections = prioritizedTasks.stream()
-                .filter(task -> (task.getStartTime().isEqual(startTime) ||
-                        task.getStartTime().isBefore(startTime) && task.getEndTime().isAfter(startTime)))
+                    return startToVerify.isEqual(taskStartTime) || startToVerify.isEqual(taskEndTime) ||
+                            endToVerify.isEqual(taskStartTime) || endToVerify.isEqual(taskEndTime) ||
+                            startToVerify.isAfter(taskStartTime) && startToVerify.isBefore(taskEndTime) ||
+                            endToVerify.isAfter(taskStartTime) && endToVerify.isBefore(taskEndTime);
+                })
                 .toList();
 
-        return filteredByPresenceIntersections.isEmpty();
+        return filteredByIntersectionPresence.isEmpty();
     }
 
     public TreeSet<Task> getPrioritizedTasks() {
         return prioritizedTasks;
     }
 
-    public void setStartTimeToTask(Task task,LocalDateTime startTime) throws IllegalStartTimeException {
-        boolean isStartTimeAccepted = checkTasksTimeIntersections(startTime);
 
-        if (!isStartTimeAccepted) {
-            throw new IllegalStartTimeException("Стартовое время не подходит, пересечение с другой задачей");
-        }
-
-         task.setStartTime(startTime);
-         addPrioritizedTask(task);
-    }
 }
 
 class TaskComparatorByStartTime implements Comparator<Task> {
