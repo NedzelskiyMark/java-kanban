@@ -8,7 +8,6 @@ import model.Task;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 public interface TaskManager {
     List<Task> getAllTasksList();
