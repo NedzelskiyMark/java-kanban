@@ -205,7 +205,7 @@ public class InMemoryTasksManager implements TaskManager {
     //приоритизированный список, оставляя только задачи, где есть пересечения, и возвращает булево значение пустой ли
     //выходит список после фильтрации
     private boolean checkTasksTimeIntersections(LocalDateTime startToVerify, LocalDateTime endToVerify) {
-        boolean isThereIntersectionPresence = prioritizedTasks.stream()
+        return !prioritizedTasks.stream()
                 .anyMatch(task -> {
                     LocalDateTime taskStartTime = task.getStartTime();
                     LocalDateTime taskEndTime = task.getEndTime();
@@ -215,8 +215,6 @@ public class InMemoryTasksManager implements TaskManager {
                             startToVerify.isAfter(taskStartTime) && startToVerify.isBefore(taskEndTime) ||
                             endToVerify.isAfter(taskStartTime) && endToVerify.isBefore(taskEndTime);
                 });
-
-        return !isThereIntersectionPresence;
     }
 
     public Set<Task> getPrioritizedTasks() {
