@@ -7,6 +7,7 @@ import model.Task;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 public interface TaskManager {
@@ -38,5 +39,5 @@ public interface TaskManager {
 
     void setStartTimeToTask(Task task, LocalDateTime startTime) throws IllegalStartTimeException;
 
-    TreeSet<Task> getPrioritizedTasks();
+    Set<Task> getPrioritizedTasks();
 }

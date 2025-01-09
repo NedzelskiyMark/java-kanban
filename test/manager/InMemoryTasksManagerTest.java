@@ -4,8 +4,8 @@ import model.Epic;
 import model.IllegalStartTimeException;
 import model.SubTask;
 import model.Task;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -15,8 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTasksManagerTest {
-    private static TaskManager tasksManager = Managers.getDefault();
-    //private static List<Integer> rightIds = new ArrayList<>();
+    private static TaskManager tasksManager;
     private static List<Task> tasksList = new ArrayList<>();
 
     @BeforeAll
@@ -30,9 +29,9 @@ class InMemoryTasksManagerTest {
         tasksList.add(newSubtask);
     }
 
-    @AfterEach
-    public void afterEach() {
-        tasksManager.deleteAllTasks();
+    @BeforeEach
+    public void beforeEach() {
+        tasksManager = Managers.getDefault();
     }
 
     @Test
@@ -155,5 +154,20 @@ class InMemoryTasksManagerTest {
         tasksManager.updateTask(secondSubtask);
         tasksManager.updateTask(thirdSubtask);
         assertEquals(epic.getId() + ",EPIC,Epic name,DONE,Epic description,0,0,0,null\n", epic.toString());
+    }
+
+    @Test
+    public void illegalStartTimeException() {
+        Task task1 = new Task("Name", "Description", 0, 30);
+        Task task2 = new Task("Name", "Description", 0, 30);
+
+        tasksManager.addTaskToList(task1);
+        tasksManager.addTaskToList(task2);
+
+        assertThrows(IllegalStartTimeException.class, () -> {
+            tasksManager.setStartTimeToTask(task1, LocalDateTime.of(2025, 1, 7, 12, 0));
+            tasksManager.setStartTimeToTask(task2, LocalDateTime.of(2025, 1, 7, 12, 15));
+        });
+
     }
 }

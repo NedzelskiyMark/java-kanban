@@ -112,15 +112,9 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
 
     public void saveTasksToFileFromList(List<String> listOfTasks) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskPath.toFile(), true))) {
-//По заданию надо поменять все циклы for на стримы, но здесь из-за того что приходится добавлять блок try-catch
-// страдает читаемость кода. Мне кажется правильным было бы оставить цикл for ради читаемости или лучше стрим?
-            listOfTasks.stream().forEach(line -> {
-                try {
-                    writer.write(line);
-                } catch (IOException e) {
-                    throw new ManagerSaveException("Произошла ошибка при записи задачи из списка в файл");
-                }
-            });
+            for (String task : listOfTasks) {
+                writer.write(task);
+            }
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка при записи задачи из списка в файл");
         }
@@ -136,7 +130,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     public static Task fromString(String value) {
         String[] strArr = value.split(",");
         int id = Integer.parseInt(strArr[0]);
-        String taskType = strArr[1];
+        String taskTypeString = strArr[1];
         String name = strArr[2];
         String taskStatusString = strArr[3];
         String description = strArr[4];
@@ -145,9 +139,16 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         int minutes = Integer.parseInt(strArr[7]);
         String startTime = strArr[8];
 
+        TaskType taskType = TaskType.TASK;
+        switch (taskTypeString) {
+            case "SUBTASK":
+                taskType = TaskType.SUBTASK;
+                break;
+            case "EPIC":
+                taskType = TaskType.EPIC;
+        }
 
         TaskStatus taskStatus = TaskStatus.NEW;
-
         switch (taskStatusString) {
             case "IN_PROGRESS":
                 taskStatus = TaskStatus.IN_PROGRESS;
@@ -157,30 +158,16 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         }
 
         Task taskFromFile = null;
-        if (startTime.equals("null")) {
-            switch (taskType) {
-                case "TASK":
-                    taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes);
-                    break;
-                case "EPIC":
-                    taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
-                    break;
-                case "SUBTASK":
-                    taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes);
-            }
-        } else {
-            LocalDateTime startTimeParsed = LocalDateTime.parse(startTime,
-                    DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
-            switch (taskType) {
-                case "TASK":
-                    taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes, startTimeParsed);
-                    break;
-                case "EPIC":
-                    taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
-                    break;
-                case "SUBTASK":
-                    taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes, startTimeParsed);
-            }
+
+        switch (taskType) {
+            case TaskType.TASK:
+                taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes, startTime);
+                break;
+            case TaskType.EPIC:
+                taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
+                break;
+            case TaskType.SUBTASK:
+                taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes, startTime);
         }
 
 

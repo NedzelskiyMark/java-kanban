@@ -4,12 +4,13 @@ import model.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class InMemoryTasksManager implements TaskManager {
-    private Map<Integer, Task> tasksList = new HashMap<>();
-    private Map<Integer, Epic> epicsList = new HashMap<>();
-    private Map<Integer, SubTask> subtasksList = new HashMap<>();
+    private Map<Integer, Task> tasksMap = new HashMap<>();
+    private Map<Integer, Epic> epicsMap = new HashMap<>();
+    private Map<Integer, SubTask> subtasksMap = new HashMap<>();
 
     private Collection<String> idInUse = new ArrayList<>();
     /*
@@ -17,7 +18,7 @@ public class InMemoryTasksManager implements TaskManager {
     * "абстрактными", а в списке оставить именно те задачи, которые надо непосредственно выполнять. Если это не
     правильный подход, я его изменю:)
     */
-    private TreeSet<Task> prioritizedTasks = new TreeSet<>(new TaskComparatorByStartTime());
+    private Set<Task> prioritizedTasks = new TreeSet<>(new TaskComparatorByStartTime());
 
     private HistoryManager historyManager = Managers.getDefaultHistory();
 
@@ -26,16 +27,15 @@ public class InMemoryTasksManager implements TaskManager {
     public List<Task> getAllTasksList() {
         List<Task> allTasksList = new ArrayList<>();
 
-        tasksList.values().stream().forEach(allTasksList::add);
+        tasksMap.values().forEach(allTasksList::add);
 
 
         //немного усложнил, хотел сделать чтобы в списке всех задач был порядок,
         // сначала добавляется эпик, затем его подзадачи, затем следующий эпик и т.д.
 
-        epicsList.values().stream()
-                .forEach(task -> {
+        epicsMap.values().forEach(task -> {
                     allTasksList.add(task);
-                    getAllSubtaskOfEpic(task.getId()).stream().forEach(allTasksList::add);
+                    getAllSubtaskOfEpic(task.getId()).forEach(allTasksList::add);
                 });
 
         return allTasksList;
@@ -43,9 +43,9 @@ public class InMemoryTasksManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
-        tasksList.clear();
-        epicsList.clear();
-        subtasksList.clear();
+        tasksMap.clear();
+        epicsMap.clear();
+        subtasksMap.clear();
         historyManager.clearHistoryList();
         prioritizedTasks.clear();
     }
@@ -53,39 +53,39 @@ public class InMemoryTasksManager implements TaskManager {
     @Override
     public Task getTaskById(int idToFind) {
         Task foundTask;
-        if (tasksList.containsKey(idToFind)) {
-            foundTask = tasksList.get(idToFind);
+        if (tasksMap.containsKey(idToFind)) {
+            foundTask = tasksMap.get(idToFind);
             historyManager.add(foundTask);
             return foundTask;
         }
 
-        if (epicsList.containsKey(idToFind)) {
-            foundTask = epicsList.get(idToFind);
+        if (epicsMap.containsKey(idToFind)) {
+            foundTask = epicsMap.get(idToFind);
             historyManager.add(foundTask);
             return foundTask;
         }
 
-        foundTask = subtasksList.get(idToFind);
+        foundTask = subtasksMap.get(idToFind);
         historyManager.add(foundTask);
         return foundTask;
     }
 
     @Override
     public void addTaskToList(Task newTask) {
-        tasksList.put(newTask.getId(), newTask);
+        tasksMap.put(newTask.getId(), newTask);
         idInUse.add(String.valueOf(newTask.getId()));
         addTaskToPrioritizedList(newTask);
     }
 
     @Override
     public void addEpicToList(Epic newEpic) {
-        epicsList.put(newEpic.getId(), newEpic);
+        epicsMap.put(newEpic.getId(), newEpic);
         idInUse.add(String.valueOf(newEpic.getId()));
     }
 
     @Override
     public void addSubTaskToList(SubTask newSubtask) {
-        subtasksList.put(newSubtask.getId(), newSubtask);
+        subtasksMap.put(newSubtask.getId(), newSubtask);
         idInUse.add(String.valueOf(newSubtask.getId()));
         addTaskToPrioritizedList(newSubtask);
     }
@@ -102,7 +102,7 @@ public class InMemoryTasksManager implements TaskManager {
 
         if (updatedTask.getClass().getName().equals("model.SubTask")) {
             SubTask updatedTaskCopy = (SubTask) updatedTask;
-            Epic relatedEpic = epicsList.get(updatedTaskCopy.getRelationEpicId());
+            Epic relatedEpic = epicsMap.get(updatedTaskCopy.getRelationEpicId());
             checkAndSetEpicStatus(relatedEpic.getId());//добавил метод, чтобы разгрузить действующий метод
 
             if (updatedTask.getTaskStatus() == TaskStatus.DONE) {
@@ -113,18 +113,15 @@ public class InMemoryTasksManager implements TaskManager {
 
     @Override
     public void checkAndSetEpicStatus(int epicId) {
-        List<SubTask> subtasksWithStatusNotDone = subtasksList.values().stream()
-                .filter(subtask -> subtask.getRelationEpicId() == epicId &&
-                        (subtask.getTaskStatus().equals(TaskStatus.NEW) ||
-                                subtask.getTaskStatus().equals(TaskStatus.IN_PROGRESS)))
-                .toList();
+        boolean isThereNotDoneSubtasks = subtasksMap.values().stream()
+                .filter(subtask -> subtask.getRelationEpicId() == epicId)
+                .anyMatch(subtask -> (subtask.getTaskStatus().equals(TaskStatus.NEW) ||
+                        subtask.getTaskStatus().equals(TaskStatus.IN_PROGRESS)));
 
-        boolean isAllSubtasksDone = subtasksWithStatusNotDone.isEmpty();
-
-        if (isAllSubtasksDone) {
-            epicsList.get(epicId).setTaskStatus(TaskStatus.DONE);
+        if (isThereNotDoneSubtasks) {
+            epicsMap.get(epicId).setTaskStatus(TaskStatus.IN_PROGRESS);
         } else {
-            epicsList.get(epicId).setTaskStatus(TaskStatus.IN_PROGRESS);
+            epicsMap.get(epicId).setTaskStatus(TaskStatus.DONE);
         }
     }
 
@@ -132,18 +129,18 @@ public class InMemoryTasksManager implements TaskManager {
     public void deleteById(int idToRemove) {
         prioritizedTasks.remove(getTaskById(idToRemove));
 
-        if (tasksList.containsKey(idToRemove)) {
-            tasksList.remove(idToRemove);
+        if (tasksMap.containsKey(idToRemove)) {
+            tasksMap.remove(idToRemove);
             idInUse.remove(String.valueOf(idToRemove));
         }
 
-        if (subtasksList.containsKey(idToRemove)) {
-            subtasksList.remove(idToRemove);
+        if (subtasksMap.containsKey(idToRemove)) {
+            subtasksMap.remove(idToRemove);
             idInUse.remove(String.valueOf(idToRemove));
         }
         //если удаляется эпик, удаляются все его подзадачи
-        if (epicsList.containsKey(idToRemove)) {
-            epicsList.remove(idToRemove);
+        if (epicsMap.containsKey(idToRemove)) {
+            epicsMap.remove(idToRemove);
             idInUse.remove(String.valueOf(idToRemove));
             removeSubtasksOfEpic(idToRemove);//добавил метод, чтобы разгрузить действующий метод
         }
@@ -154,23 +151,27 @@ public class InMemoryTasksManager implements TaskManager {
 
     @Override
     public void removeSubtasksOfEpic(int id) {
-        List<SubTask> idSubtasksToRemove = subtasksList.values().stream()
-                .filter(subTask -> subTask.getRelationEpicId() == id)
-                .toList();
+        List<SubTask> subtasksToRemove = getAllSubtaskOfEpic(id);
 
-        idSubtasksToRemove.stream().forEach(subTask -> subtasksList.remove(subTask.getId()));
+        Map<Integer, SubTask> filteredMap = subtasksMap.entrySet().stream()
+                .filter(entry -> !subtasksToRemove.contains(entry.getValue()))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                ));
+
+        subtasksMap = filteredMap;
     }
 
     @Override
     public List<SubTask> getAllSubtaskOfEpic(int id) {
-        return subtasksList.values().stream()
+        return subtasksMap.values().stream()
                 .filter(subTask -> subTask.getRelationEpicId() == id)
                 .toList();
     }
 
     @Override
     public List<Task> getHistory() {
-
         return historyManager.getHistory();
     }
 
@@ -193,9 +194,9 @@ public class InMemoryTasksManager implements TaskManager {
     }
 
     private void addTaskToPrioritizedList(Task task) {
-        Optional<LocalDateTime> startTimeOfTask = Optional.ofNullable(task.getStartTime());
+        LocalDateTime startTimeOfTask = task.getStartTime();
 
-        if (startTimeOfTask.isPresent()) {
+        if (startTimeOfTask != null) {
             prioritizedTasks.add(task);
         }
     }
@@ -204,8 +205,8 @@ public class InMemoryTasksManager implements TaskManager {
     //приоритизированный список, оставляя только задачи, где есть пересечения, и возвращает булево значение пустой ли
     //выходит список после фильтрации
     private boolean checkTasksTimeIntersections(LocalDateTime startToVerify, LocalDateTime endToVerify) {
-        List<Task> filteredByIntersectionPresence = prioritizedTasks.stream()
-                .filter(task -> {
+        boolean isThereIntersectionPresence = prioritizedTasks.stream()
+                .anyMatch(task -> {
                     LocalDateTime taskStartTime = task.getStartTime();
                     LocalDateTime taskEndTime = task.getEndTime();
 
@@ -213,13 +214,12 @@ public class InMemoryTasksManager implements TaskManager {
                             endToVerify.isEqual(taskStartTime) || endToVerify.isEqual(taskEndTime) ||
                             startToVerify.isAfter(taskStartTime) && startToVerify.isBefore(taskEndTime) ||
                             endToVerify.isAfter(taskStartTime) && endToVerify.isBefore(taskEndTime);
-                })
-                .toList();
+                });
 
-        return filteredByIntersectionPresence.isEmpty();
+        return !isThereIntersectionPresence;
     }
 
-    public TreeSet<Task> getPrioritizedTasks() {
+    public Set<Task> getPrioritizedTasks() {
         return prioritizedTasks;
     }
 }

@@ -45,7 +45,6 @@ public class Task {
 
     public Task(int id, String name, String description, TaskStatus taskStatus,
                 int relationEpicId, int hours, int minutes) {
-//        this(id, name, description, taskStatus, hours, minutes);
         this(name, description, hours, minutes);
         this.id = id;
         this.taskStatus = taskStatus;
@@ -53,10 +52,12 @@ public class Task {
     }
 
     public Task(int id, String name, String description, TaskStatus taskStatus,
-                int relationEpicId, int hours, int minutes, LocalDateTime startTime) {
+                int relationEpicId, int hours, int minutes, String startTime) {
         this(id, name, description, taskStatus, relationEpicId, hours, minutes);
-        this.startTime = startTime;
-        setEndTime();
+        if (!startTime.equals("null")) {
+            this.startTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+            setEndTime();
+        }
     }
 
     public String getName() {
