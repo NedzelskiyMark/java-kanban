@@ -34,9 +34,9 @@ public class InMemoryTasksManager implements TaskManager {
         // сначала добавляется эпик, затем его подзадачи, затем следующий эпик и т.д.
 
         epicsMap.values().forEach(task -> {
-                    allTasksList.add(task);
-                    getAllSubtaskOfEpic(task.getId()).forEach(allTasksList::add);
-                });
+            allTasksList.add(task);
+            getAllSubtaskOfEpic(task.getId()).forEach(allTasksList::add);
+        });
 
         return allTasksList;
     }
