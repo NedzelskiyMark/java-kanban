@@ -6,6 +6,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,21 +17,22 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         taskPath = file.toPath();
     }
 
-    public static FileBackedTaskManager loadFromFile(File file) {
+    public static FileBackedTaskManager getManager(File file) {
         FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
         if (file.exists()) {
             List<String> listOfLinesFromFile = getListOfStringFromFile(file);
 
-            for (String line : listOfLinesFromFile) {
-                Task task = fromString(line);
-                if (task.getClass().getSimpleName().equals("Task")) {
-                    taskManager.addTaskToList(task);
-                } else if (task.getClass().getSimpleName().equals("Epic")) {
-                    taskManager.addEpicToList((Epic) task);
-                } else if (task.getClass().getSimpleName().equals("SubTask")) {
-                    taskManager.addSubTaskToList((SubTask) task);
-                }
-            }
+            listOfLinesFromFile.stream()
+                    .forEach(line -> {
+                        Task task = fromString(line);
+                        if (task.getClass().getSimpleName().equals("Task")) {
+                            taskManager.addTaskToList(task);
+                        } else if (task.getClass().getSimpleName().equals("Epic")) {
+                            taskManager.addEpicToList((Epic) task);
+                        } else if (task.getClass().getSimpleName().equals("SubTask")) {
+                            taskManager.addSubTaskToList((SubTask) task);
+                        }
+                    });
         } else {
             createNewFile(file.toPath());
         }
@@ -47,7 +49,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskPath.toFile()))) {
-            writer.write("id,type,name,status,description,epic\n");
+            writer.write("id,type,name,taskStatus,description,relatedEpic,durationHours,durationMinutes,startTime\n");
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка при записи в файл");
         }
@@ -66,10 +68,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         List<Task> listOfTasksToReturn = new ArrayList<>();
         List<String> linesOfTasks = getListOfStringFromFile(file);
 
-        for (String line : linesOfTasks) {
-            Task taskFromFile = fromString(line);
-            listOfTasksToReturn.add(taskFromFile);
-        }
+        linesOfTasks.stream().forEach(line -> listOfTasksToReturn.add(fromString(line)));
 
         return listOfTasksToReturn;
     }
@@ -105,17 +104,15 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         List<Task> listOfTasks = super.getAllTasksList();
         List<String> listOsStringTasks = new ArrayList<>();
 
-        for (Task task : listOfTasks) {
-            listOsStringTasks.add(task.toString());
-        }
+        listOfTasks.stream().forEach(task -> listOsStringTasks.add(task.toString()));
 
         return listOsStringTasks;
     }
 
     public void saveTasksToFileFromList(List<String> listOfTasks) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskPath.toFile(), true))) {
-            for (String line : listOfTasks) {
-                writer.write(line + "\n");
+            for (String task : listOfTasks) {
+                writer.write(task);
             }
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка при записи задачи из списка в файл");
@@ -132,18 +129,25 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     public static Task fromString(String value) {
         String[] strArr = value.split(",");
         int id = Integer.parseInt(strArr[0]);
-        String taskType = strArr[1];
+        String taskTypeString = strArr[1];
         String name = strArr[2];
         String taskStatusString = strArr[3];
         String description = strArr[4];
-        TaskStatus taskStatus = TaskStatus.NEW;
+        int relationEpicId = Integer.parseInt(strArr[5]);
+        int hours = Integer.parseInt(strArr[6]);
+        int minutes = Integer.parseInt(strArr[7]);
+        String startTime = strArr[8];
 
-        int relationEpicId = 0;
-        if (strArr.length == 6) {
-            relationEpicId = Integer.parseInt(strArr[5]);
+        TaskType taskType = TaskType.TASK;
+        switch (taskTypeString) {
+            case "SUBTASK":
+                taskType = TaskType.SUBTASK;
+                break;
+            case "EPIC":
+                taskType = TaskType.EPIC;
         }
 
-
+        TaskStatus taskStatus = TaskStatus.NEW;
         switch (taskStatusString) {
             case "IN_PROGRESS":
                 taskStatus = TaskStatus.IN_PROGRESS;
@@ -155,15 +159,16 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
         Task taskFromFile = null;
 
         switch (taskType) {
-            case "TASK":
-                taskFromFile = new Task(id, name, taskStatus, description);
+            case TaskType.TASK:
+                taskFromFile = new Task(id, name, description, taskStatus, relationEpicId, hours, minutes, startTime);
                 break;
-            case "EPIC":
-                taskFromFile = new Epic(id, name, taskStatus, description);
+            case TaskType.EPIC:
+                taskFromFile = new Epic(id, name, description, taskStatus, hours, minutes);
                 break;
-            case "SUBTASK":
-                taskFromFile = new SubTask(id, name, taskStatus, description, relationEpicId);
+            case TaskType.SUBTASK:
+                taskFromFile = new SubTask(id, name, description, taskStatus, relationEpicId, hours, minutes, startTime);
         }
+
 
         return taskFromFile;
 
@@ -205,6 +210,7 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     public void addSubTaskToList(SubTask newSubtask) {
         super.addSubTaskToList(newSubtask);
         save(newSubtask);
+        updateFileToActualTasks(taskPath);
     }
 
     @Override
@@ -241,46 +247,54 @@ public class FileBackedTaskManager extends InMemoryTasksManager {
     }
 
     public static void main(String[] args) {
-        /*
-         * Спасибо за ревью, надеюсь что фраза "интересно думаешь" не эвфемизм:)
-         * Решил все же сделать пользовательский сценарий, но не уверен что правильно понял его задание.
-         * Я создам менеджер задач, добавлю туда несколько разных задач, после чего сделаю еще один менеджер,
-         * как я понял, он должен увидеть созданный файл и подтянуть задачи из него себе в память.
-         * Надеюсь что в этом суть задания была
-         * */
         Path pathToFile = Paths.get("tasks.csv");
-        FileBackedTaskManager firstTaskManager = FileBackedTaskManager.loadFromFile(pathToFile.toFile());
+        FileBackedTaskManager firstTaskManager = FileBackedTaskManager.getManager(pathToFile.toFile());
 
-        Task task = new Task("Task name", "Task description");
+        Task task = new Task("Task name", "Task description", 1, 15);
         firstTaskManager.addTaskToList(task);
 
         Epic epic = new Epic("Epic name", "Epic description");
         firstTaskManager.addEpicToList(epic);
 
-        SubTask subtaskForEpic = new SubTask("Subtask name", "Subtask description");
+        SubTask subtaskForEpic = new SubTask("Subtask name", "Subtask description", 0, 45);
         epic.addSubTaskIdToEpic(subtaskForEpic);
         firstTaskManager.addSubTaskToList(subtaskForEpic);
 
         Epic epicSecond = new Epic("EpicSecond name", "EpicSecond description");
         firstTaskManager.addEpicToList(epicSecond);
 
-        SubTask secondEpicSubtask1 = new SubTask("Subtask second name", "Subtask second description");
+        SubTask secondEpicSubtask1 = new SubTask("Subtask second name", "Subtask second description", 0, 20);
         epicSecond.addSubTaskIdToEpic(secondEpicSubtask1);
         firstTaskManager.addSubTaskToList(secondEpicSubtask1);
 
-        SubTask secondEpicSubtask2 = new SubTask("Second subtask second name", "Second subtask description");
+        SubTask secondEpicSubtask2 = new SubTask("Second subtask second name", "Second subtask description", 0, 15);
         epicSecond.addSubTaskIdToEpic(secondEpicSubtask2);
         firstTaskManager.addSubTaskToList(secondEpicSubtask2);
 
-        Task task7 = new Task("Task 7 name", "Task 7 description");
+        Task task7 = new Task("Task 7 name", "Task 7 description", 2, 55);
         firstTaskManager.addTaskToList(task7);
+        try {
+            firstTaskManager.setStartTimeToTask(task7, LocalDateTime.of(2025, 1, 5, 12, 0));
+        } catch (IllegalStartTimeException e) {
+            System.out.println(e.getMessage());
+        }
+        //Должен пойматься exception
+        try {
+            firstTaskManager.setStartTimeToTask(secondEpicSubtask2, LocalDateTime.of(2025, 1, 5, 12, 30));
+        } catch (IllegalStartTimeException e) {
+            System.out.println(e.getMessage());
+        }
+
+        firstTaskManager.updateTask(secondEpicSubtask1);
+        firstTaskManager.updateTask(secondEpicSubtask2);
+        firstTaskManager.updateTask(secondEpicSubtask2);
 
         //Список задач из памяти первого менеджера
         List<String> tasksListFromFirstManager = firstTaskManager.getListOfTasksFromMemory();
         System.out.println(tasksListFromFirstManager);
 
         //Создание второго менеджера и создание списка задач из него
-        FileBackedTaskManager secondTaskManager = FileBackedTaskManager.loadFromFile(pathToFile.toFile());
+        FileBackedTaskManager secondTaskManager = FileBackedTaskManager.getManager(pathToFile.toFile());
         List<String> tasksListFromSecondManager = secondTaskManager.getListOfTasksFromMemory();
         System.out.println(tasksListFromSecondManager);
 

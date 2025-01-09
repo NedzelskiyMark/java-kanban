@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SubTaskTest {
-    SubTask subtask1 = new SubTask("SubTask name", "SubTask description");
-    SubTask subtask2 = new SubTask("SubTask name", "SubTask description");
+    SubTask subtask1 = new SubTask("SubTask name", "SubTask description", 0, 55);
+    SubTask subtask2 = new SubTask("SubTask name", "SubTask description", 1, 15);
 
     @Test
     void testSubTaskEqualsOnlyIfIdIsEqual() {

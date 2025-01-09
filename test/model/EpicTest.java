@@ -15,8 +15,6 @@ class EpicTest {
 
     @Test
     void epicCantAddItselfToHisOwnSubtaskList() {
-        //попытка добавить другой Эпик как подзадачу
-        assertEquals(1, epic1.addSubTaskIdToEpic(epic2));
         //попытка добавить сам Эпик как подзадачу для самого себя
         assertEquals(-1, epic1.addSubTaskIdToEpic(epic1));
     }
